@@ -2,6 +2,7 @@
 
 namespace Illuminate\Tests\Foundation\Bootstrap;
 
+use Error;
 use ErrorException;
 use Illuminate\Config\Repository as Config;
 use Illuminate\Foundation\Application;
@@ -29,9 +30,7 @@ class HandleExceptionsTest extends TestCase
     protected function handleExceptions()
     {
         return tap(new HandleExceptions(), function ($instance) {
-            with(new ReflectionClass($instance), function ($reflection) use ($instance) {
-                $reflection->getProperty('app')->setValue($instance, $this->app);
-            });
+            (new ReflectionClass($instance))->getProperty('app')->setValue($instance, $this->app);
         });
     }
 
@@ -40,7 +39,7 @@ class HandleExceptionsTest extends TestCase
         Application::setInstance(null);
         HandleExceptions::flushState($this);
 
-        m::close();
+        parent::tearDown();
     }
 
     public function testPhpDeprecations()
@@ -337,6 +336,23 @@ class HandleExceptionsTest extends TestCase
         );
     }
 
+    public function testIgnoreDeprecationIfLoggingFails()
+    {
+        $logger = m::mock(LogManager::class);
+        $this->app->instance(LogManager::class, $logger);
+        $this->app->expects('runningUnitTests')->andReturn(false);
+        $this->app->expects('hasBeenBootstrapped')->andReturn(true);
+
+        $logger->expects('channel')->with('deprecations')->andThrow(new Error('Class "Monolog\Logger" not found'));
+
+        $this->handleExceptions()->handleError(
+            E_DEPRECATED,
+            'str_contains(): Passing null to parameter #2 ($needle) of type string is deprecated',
+            '/home/user/laravel/routes/web.php',
+            17
+        );
+    }
+
     public function testItIgnoreDeprecationLoggingWhenRunningUnitTests()
     {
         $resolved = false;
@@ -381,11 +397,7 @@ class HandleExceptionsTest extends TestCase
     {
         $instance = $this->handleExceptions();
 
-        $appResolver = fn () => with(new ReflectionClass($instance), function ($reflection) use ($instance) {
-            $property = $reflection->getProperty('app');
-
-            return $property->getValue($instance);
-        });
+        $appResolver = fn () => (new ReflectionClass($instance))->getProperty('app')->getValue($instance);
 
         $this->assertNotNull($appResolver());
 
@@ -398,11 +410,7 @@ class HandleExceptionsTest extends TestCase
     {
         $instance = $this->handleExceptions();
 
-        $appResolver = fn () => with(new ReflectionClass($instance), function ($reflection) use ($instance) {
-            $property = $reflection->getProperty('app');
-
-            return $property->getValue($instance);
-        });
+        $appResolver = fn () => (new ReflectionClass($instance))->getProperty('app')->getValue($instance);
 
         $this->assertSame($this->app, $appResolver());
 

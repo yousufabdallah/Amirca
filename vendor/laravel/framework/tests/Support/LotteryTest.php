@@ -10,9 +10,9 @@ class LotteryTest extends TestCase
 {
     protected function tearDown(): void
     {
-        parent::tearDown();
-
         Lottery::determineResultNormally();
+
+        parent::tearDown();
     }
 
     public function testItCanWin()
@@ -152,6 +152,13 @@ class LotteryTest extends TestCase
         $this->expectExceptionMessage('Float must not be greater than 1.');
 
         new Lottery(1.1);
+    }
+
+    public function testItThrowsForOutOfLessThanOne()
+    {
+        $this->expectException(RuntimeException::class);
+
+        new Lottery(1, 0);
     }
 
     public function testItCanWinWithFloat()

@@ -103,7 +103,7 @@ class RepositoryTest extends TestCase
         $this->assertSame(3, $cache->get('foo'));
         $this->assertSame(946684832, $cache->get('illuminate:cache:flexible:created:foo'));
 
-        // Now we will execute the deferred callback but we will first aquire
+        // Now we will execute the deferred callback but we will first acquire
         // our own lock. This means that the value should not be refreshed by
         // deferred callback.
         /** @var Lock */
@@ -118,7 +118,7 @@ class RepositoryTest extends TestCase
         $this->assertTrue($lock->release());
 
         // Now we have cleared the lock we will, one last time, confirm that
-        // the deferred callack does refresh the value when the lock is not active.
+        // the deferred callback does refresh the value when the lock is not active.
         defer()->invoke();
         $this->assertCount(0, defer());
         $this->assertSame(4, $cache->get('foo'));
@@ -238,6 +238,31 @@ class RepositoryTest extends TestCase
         $this->assertTrue($cache->missing('illuminate:cache:flexible:created:count'));
     }
 
+    public function testItCanAlwaysDefer()
+    {
+        $this->freezeTime();
+        $cache = Cache::driver('array');
+        $count = 0;
+
+        // Cache is empty. The value should be populated...
+        $cache->flexible('foo', [10, 20], function () use (&$count) {
+            return ++$count;
+        }, alwaysDefer: true);
+
+        // First call to flexible() should not defer
+        $this->assertCount(0, defer());
+
+        Carbon::setTestNow(now()->addSeconds(11));
+
+        // Second callback should defer with always now true
+        $cache->flexible('foo', [10, 20], function () use (&$count) {
+            return ++$count;
+        }, alwaysDefer: true);
+
+        $this->assertCount(1, defer());
+        $this->assertTrue(defer()->first()->always);
+    }
+
     public function testItRoundsDateTimeValuesToAccountForTimePassedDuringScriptExecution()
     {
         // do not freeze time as this test depends on time progressing duration execution.
@@ -254,4 +279,61 @@ class RepositoryTest extends TestCase
         $this->assertSame('foo', $events[0]->key);
         $this->assertSame(1, $events[0]->seconds);
     }
+
+    public function testWorksWithEnumKey()
+    {
+        $cache = Cache::driver('array');
+
+        // put / get / has / missing
+        $cache->put(TestCacheKey::FOO, 'value');
+        $this->assertSame('value', $cache->get(TestCacheKey::FOO));
+        $this->assertSame(['foo' => 'value', 'bar' => null], $cache->get([TestCacheKey::FOO, TestCacheKey::BAR]));
+        $this->assertTrue($cache->has(TestCacheKey::FOO));
+        $this->assertFalse($cache->missing(TestCacheKey::FOO));
+
+        // pull
+        $this->assertSame('value', $cache->pull(TestCacheKey::FOO));
+        $this->assertNull($cache->get(TestCacheKey::FOO));
+
+        // add
+        $this->assertTrue($cache->add(TestCacheKey::FOO, 'added', 3600));
+        $this->assertFalse($cache->add(TestCacheKey::FOO, 'duplicate', 3600));
+        $this->assertSame('added', $cache->get(TestCacheKey::FOO));
+
+        // forever
+        $cache->forever(TestCacheKey::BAR, 'forever');
+        $this->assertSame('forever', $cache->get(TestCacheKey::BAR));
+
+        // remember / rememberForever / sear
+        $this->assertSame('remember', $cache->remember(TestCacheKey::BAZ, 3600, fn () => 'remember'));
+        $this->assertSame('forever', $cache->rememberForever(TestCacheKey::QUX, fn () => 'forever'));
+        $this->assertSame('forever', $cache->sear(TestCacheKey::QUX, fn () => 'ignored'));
+
+        // increment / decrement
+        $cache->put(TestCacheKey::FOO, 5);
+        $this->assertSame(6, $cache->increment(TestCacheKey::FOO));
+        $this->assertSame(5, $cache->decrement(TestCacheKey::FOO));
+
+        // forget
+        $cache->put(TestCacheKey::FOO, 'x');
+        $this->assertTrue($cache->forget(TestCacheKey::FOO));
+        $this->assertNull($cache->get(TestCacheKey::FOO));
+
+        // flexible / withoutOverlapping
+        $this->assertSame('flexible', $cache->flexible(TestCacheKey::FOO, [5, 10], fn () => 'flexible'));
+        $this->assertSame('overlapping', $cache->withoutOverlapping(TestCacheKey::FOO, fn () => 'overlapping'));
+
+        // many / getMultiple
+        $cache->clear();
+        $this->assertSame(['foo' => null, 'bar' => null, 'baz' => null], $cache->many([TestCacheKey::FOO, TestCacheKey::BAR, TestCacheKey::BAZ]));
+        $this->assertSame(['foo' => 'default', 'qux' => 'default'], $cache->getMultiple([TestCacheKey::FOO, TestCacheKey::QUX], 'default'));
+    }
+}
+
+enum TestCacheKey: string
+{
+    case FOO = 'foo';
+    case BAR = 'bar';
+    case BAZ = 'baz';
+    case QUX = 'qux';
 }

@@ -76,6 +76,13 @@ class MarkdownParserTest extends TestCase
             '<p>Visit &lt;span&gt;https://laravel.com/docs&lt;/span&gt; to browse the documentation</p>',
         ];
 
+        yield [new EncodedHtmlString('\[Laravel](https://laravel.com)'), '<p>\[Laravel](https://laravel.com)</p>'];
+
+        yield [
+            new EncodedHtmlString('!\[Welcome to Laravel](https://laravel.com/assets/img/welcome/background.svg)'),
+            '<p>!\[Welcome to Laravel](https://laravel.com/assets/img/welcome/background.svg)</p>',
+        ];
+
         yield [
             new EncodedHtmlString(new HtmlString('Visit <span>https://laravel.com/docs</span> to browse the documentation')),
             '<p>Visit <span>https://laravel.com/docs</span> to browse the documentation</p>',
@@ -85,5 +92,87 @@ class MarkdownParserTest extends TestCase
             '![Welcome to Laravel](https://laravel.com/assets/img/welcome/background.svg)<br />'.new EncodedHtmlString('Visit <span>https://laravel.com/docs</span> to browse the documentation'),
             '<p><img src="https://laravel.com/assets/img/welcome/background.svg" alt="Welcome to Laravel" /><br />Visit &lt;span&gt;https://laravel.com/docs&lt;/span&gt; to browse the documentation</p>',
         ];
+    }
+
+    public function testItCanParseMarkdownWithCustomExtensionsViaConfig(): void
+    {
+        $this->configureMarkdownExtensions([
+            \League\CommonMark\Extension\Strikethrough\StrikethroughExtension::class,
+        ]);
+
+        tap(Markdown::parse('~~strikethrough text~~'), function ($html) {
+            $this->assertInstanceOf(HtmlString::class, $html);
+
+            $expected = '<p><del>strikethrough text</del></p>';
+
+            $this->assertStringEqualsStringIgnoringLineEndings($expected.PHP_EOL, (string) $html);
+            $this->assertSame((string) $html, (string) $html->toHtml());
+        });
+    }
+
+    public function testItCanParseMarkdownWithoutCustomExtensionsDoesNotApplyThem(): void
+    {
+        $this->configureMarkdownExtensions([]);
+
+        tap(Markdown::parse('~~strikethrough text~~'), function ($html) {
+            $this->assertInstanceOf(HtmlString::class, $html);
+
+            $expected = '<p>~~strikethrough text~~</p>';
+
+            $this->assertStringEqualsStringIgnoringLineEndings($expected.PHP_EOL, (string) $html);
+            $this->assertSame((string) $html, (string) $html->toHtml());
+        });
+    }
+
+    public function testItCanParseMarkdownWithMultipleCustomExtensions(): void
+    {
+        $this->configureMarkdownExtensions([
+            \League\CommonMark\Extension\Strikethrough\StrikethroughExtension::class,
+            \League\CommonMark\Extension\TaskList\TaskListExtension::class,
+        ]);
+
+        tap(Markdown::parse('~~strikethrough~~'), function ($html) {
+            $this->assertInstanceOf(HtmlString::class, $html);
+
+            $expected = '<p><del>strikethrough</del></p>';
+
+            $this->assertStringEqualsStringIgnoringLineEndings($expected.PHP_EOL, (string) $html);
+            $this->assertSame((string) $html, (string) $html->toHtml());
+        });
+
+        tap(Markdown::parse('- [ ] Task item'), function ($html) {
+            $this->assertInstanceOf(HtmlString::class, $html);
+
+            $expected = "<ul>\n<li><input disabled=\"\" type=\"checkbox\"> Task item</li>\n</ul>";
+
+            $this->assertStringEqualsStringIgnoringLineEndings($expected.PHP_EOL, (string) $html);
+            $this->assertSame((string) $html, (string) $html->toHtml());
+        });
+    }
+
+    public function testItCanParseMarkdownEncodedStringWithCustomExtensions(): void
+    {
+        $this->configureMarkdownExtensions([
+            \League\CommonMark\Extension\Strikethrough\StrikethroughExtension::class,
+        ]);
+
+        tap(Markdown::parse(new EncodedHtmlString('~~strikethrough text~~'), encoded: true), function ($html) {
+            $this->assertInstanceOf(HtmlString::class, $html);
+
+            $expected = '<p><del>strikethrough text</del></p>';
+
+            $this->assertStringEqualsStringIgnoringLineEndings($expected.PHP_EOL, (string) $html);
+        });
+    }
+
+    /**
+     * @param  array<int, class-string<\League\CommonMark\Extension\ExtensionInterface>>  $extensions
+     */
+    protected function configureMarkdownExtensions(array $extensions): void
+    {
+        $this->app['config']->set('mail.markdown.extensions', $extensions);
+
+        $this->app->forgetInstance(Markdown::class);
+        $this->app->make(Markdown::class);
     }
 }

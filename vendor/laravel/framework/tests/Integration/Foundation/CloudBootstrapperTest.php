@@ -66,6 +66,25 @@ class CloudBootstrapperTest extends TestCase
         unset($_SERVER['LARAVEL_CLOUD_DISK_CONFIG']);
     }
 
+    public function test_it_respects_log_levels()
+    {
+        if (isset($_SERVER['LOG_LEVEL'])) {
+            $logLevelBackup = $_SERVER['LOG_LEVEL'];
+        }
+
+        $_SERVER['LOG_LEVEL'] = 'notice';
+
+        CloudBootstrapper::configureCloudLogging($this->app);
+
+        $this->assertEquals('notice', $this->app['config']->get('logging.channels.laravel-cloud-socket.level'));
+
+        unset($_SERVER['LOG_LEVEL']);
+
+        if (isset($logLevelBackup)) {
+            $_SERVER['LOG_LEVEL'] = $logLevelBackup;
+        }
+    }
+
     public function test_it_configures_disks_with_cacheable_credential_providers()
     {
         $_SERVER['LARAVEL_CLOUD_DISK_CONFIG'] = json_encode([

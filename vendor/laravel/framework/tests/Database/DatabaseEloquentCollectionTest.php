@@ -14,6 +14,8 @@ use Mockery as m;
 use PHPUnit\Framework\TestCase;
 use stdClass;
 
+use function Orchestra\Testbench\phpunit_version_compare;
+
 class DatabaseEloquentCollectionTest extends TestCase
 {
     /**
@@ -61,7 +63,8 @@ class DatabaseEloquentCollectionTest extends TestCase
         $this->schema()->drop('users');
         $this->schema()->drop('articles');
         $this->schema()->drop('comments');
-        m::close();
+
+        parent::tearDown();
     }
 
     public function testAddingItemsToCollection()
@@ -543,6 +546,22 @@ class DatabaseEloquentCollectionTest extends TestCase
         $this->assertEquals([], $c[0]->getHidden());
     }
 
+    public function testMergeHiddenAddsHiddenOnEntireCollection()
+    {
+        $c = new Collection([new TestEloquentCollectionModel]);
+        $c = $c->mergeHidden(['merged']);
+
+        $this->assertEquals(['hidden', 'merged'], $c[0]->getHidden());
+    }
+
+    public function testMergeVisibleRemovesHiddenFromEntireCollection()
+    {
+        $c = new Collection([new TestEloquentCollectionModel]);
+        $c = $c->mergeVisible(['merged']);
+
+        $this->assertEquals(['visible', 'merged'], $c[0]->getVisible());
+    }
+
     public function testSetVisibleReplacesVisibleOnEntireCollection()
     {
         $c = new Collection([new TestEloquentCollectionModel]);
@@ -568,6 +587,27 @@ class DatabaseEloquentCollectionTest extends TestCase
         $this->assertEquals(['test' => 'test'], $c[0]->toArray());
     }
 
+    public function testSetAppendsSetsAppendedPropertiesOnEntireCollection()
+    {
+        $c = new Collection([new EloquentAppendingTestUserModel]);
+        $c->setAppends(['other_appended_field']);
+
+        $this->assertEquals(
+            [['other_appended_field' => 'bye']],
+            $c->toArray()
+        );
+    }
+
+    public function testWithoutAppendsRemovesAppendsOnEntireCollection()
+    {
+        $this->seedData();
+        $c = EloquentAppendingTestUserModel::query()->get();
+        $this->assertEquals('hello', $c->toArray()[0]['appended_field']);
+
+        $c = $c->withoutAppends();
+        $this->assertArrayNotHasKey('appended_field', $c->toArray()[0]);
+    }
+
     public function testNonModelRelatedMethods()
     {
         $a = new Collection([['foo' => 'bar'], ['foo' => 'baz']]);
@@ -579,6 +619,8 @@ class DatabaseEloquentCollectionTest extends TestCase
         $this->assertEquals(BaseCollection::class, get_class($a->zip(['a', 'b'], ['c', 'd'])));
         $this->assertEquals(BaseCollection::class, get_class($a->countBy('foo')));
         $this->assertEquals(BaseCollection::class, get_class($b->flip()));
+        $this->assertEquals(BaseCollection::class, get_class($a->partition('foo', '=', 'bar')));
+        $this->assertEquals(BaseCollection::class, get_class($a->partition('foo', 'bar')));
     }
 
     public function testMakeVisibleRemovesHiddenAndIncludesVisible()
@@ -701,7 +743,12 @@ class DatabaseEloquentCollectionTest extends TestCase
         $user = EloquentTestUserModel::with('articles')->first();
         $user->articles->loadExists('comments');
         $commentsExists = $user->articles->pluck('comments_exists')->toArray();
-        $this->assertContainsOnly('bool', $commentsExists);
+
+        if (phpunit_version_compare('11.5.0', '<')) {
+            $this->assertContainsOnly('bool', $commentsExists);
+        } else {
+            $this->assertContainsOnlyBool($commentsExists);
+        }
     }
 
     public function testWithNonScalarKey()
@@ -721,6 +768,26 @@ class DatabaseEloquentCollectionTest extends TestCase
 
         $this->assertCount(1, $collection->except([$fooKey]));
         $this->assertSame($bar, $collection->except($fooKey)->first());
+    }
+
+    public function testPluck()
+    {
+        $model1 = (new TestEloquentCollectionModel)->forceFill(['id' => 1, 'name' => 'John', 'country' => 'US']);
+        $model2 = (new TestEloquentCollectionModel)->forceFill(['id' => 2, 'name' => 'Jane', 'country' => 'NL']);
+        $model3 = (new TestEloquentCollectionModel)->forceFill(['id' => 3, 'name' => 'Taylor', 'country' => 'US']);
+
+        $c = new Collection;
+
+        $c->push($model1)->push($model2)->push($model3);
+
+        $this->assertInstanceOf(BaseCollection::class, $c->pluck('id'));
+        $this->assertEquals([1, 2, 3], $c->pluck('id')->all());
+
+        $this->assertInstanceOf(BaseCollection::class, $c->pluck('id', 'id'));
+        $this->assertEquals([1 => 1, 2 => 2, 3 => 3], $c->pluck('id', 'id')->all());
+        $this->assertInstanceOf(BaseCollection::class, $c->pluck('test'));
+
+        $this->assertEquals(['John (US)', 'Jane (NL)', 'Taylor (US)'], $c->pluck(fn (TestEloquentCollectionModel $model) => "{$model->name} ({$model->country})")->all());
     }
 
     /**
@@ -814,5 +881,28 @@ class EloquentTestKey
     public function __toString()
     {
         return $this->key;
+    }
+}
+
+class EloquentAppendingTestUserModel extends Model
+{
+    protected $table = 'users';
+    protected $guarded = [];
+    public $timestamps = false;
+    protected $appends = ['appended_field'];
+
+    public function getAppendedFieldAttribute()
+    {
+        return 'hello';
+    }
+
+    public function getOtherAppendedFieldAttribute()
+    {
+        return 'bye';
+    }
+
+    public function articles()
+    {
+        return $this->hasMany(EloquentTestArticleModel::class, 'user_id');
     }
 }

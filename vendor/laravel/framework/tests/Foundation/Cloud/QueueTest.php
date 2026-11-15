@@ -9,6 +9,8 @@ use Aws\MockHandler;
 use Aws\Result;
 use Aws\Sqs\SqsClient;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Database\LostConnectionDetector;
+use Illuminate\Foundation\Cloud\AgentAwareLostConnectionDetector;
 use Illuminate\Foundation\Cloud\AgentUnreachableException;
 use Illuminate\Foundation\Cloud\CloudJob;
 use Illuminate\Foundation\Cloud\Events;
@@ -29,6 +31,7 @@ use Illuminate\Queue\Failed\FileFailedJobProvider;
 use Illuminate\Queue\Jobs\FakeJob;
 use Illuminate\Queue\Jobs\SqsJob;
 use Illuminate\Queue\SqsQueue;
+use Illuminate\Queue\Worker;
 use Illuminate\Queue\WorkerStopReason;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Crypt;
@@ -41,6 +44,7 @@ use InvalidArgumentException;
 use Mockery\MockInterface;
 use Orchestra\Testbench\Attributes\WithMigration;
 use Orchestra\Testbench\TestCase;
+use PHPUnit\Framework\Attributes\RequiresPhpExtension;
 use Ramsey\Uuid\Uuid;
 use RuntimeException;
 use Throwable;
@@ -68,6 +72,9 @@ class QueueTest extends TestCase
     {
         $this->savedArgv = $_SERVER['argv'];
 
+        Worker::$restartable = true;
+        Worker::$pausable = true;
+        Worker::$memoryExceededExitCode = null;
         $_SERVER['LARAVEL_CLOUD'] = '1';
         $_SERVER['LARAVEL_CLOUD_MANAGED_QUEUES_CONFIG'] = json_encode([
             'driver' => 'cloud',
@@ -97,6 +104,94 @@ class QueueTest extends TestCase
         parent::tearDown();
 
         unset($_SERVER['LARAVEL_CLOUD'], $_SERVER['LARAVEL_CLOUD_MANAGED_QUEUES_CONFIG']);
+        Worker::$restartable = true;
+        Worker::$pausable = true;
+        Worker::$memoryExceededExitCode = null;
+    }
+
+    public function testItDisablesQueueRestartPollingForManagedQueues()
+    {
+        $argv = $_SERVER['argv'];
+        $_SERVER['argv'] = ['artisan', 'queue:work'];
+
+        try {
+            CloudBootstrapper::registerEvents($this->app);
+            CloudBootstrapper::bootManagedQueues($this->app);
+            $this->assertTrue(Worker::$restartable);
+
+            $this->app['queue']->connection('cloud');
+            $this->assertFalse(Worker::$restartable);
+        } finally {
+            $_SERVER['argv'] = $argv;
+        }
+    }
+
+    public function testItDisablesQueuePausePollingForManagedQueues()
+    {
+        $argv = $_SERVER['argv'];
+        $_SERVER['argv'] = ['artisan', 'queue:work'];
+
+        try {
+            CloudBootstrapper::registerEvents($this->app);
+            CloudBootstrapper::bootManagedQueues($this->app);
+            $this->assertTrue(Worker::$pausable);
+
+            $this->app['queue']->connection('cloud');
+            $this->assertFalse(Worker::$pausable);
+        } finally {
+            $_SERVER['argv'] = $argv;
+        }
+    }
+
+    public function testItDefaultsTheMemoryExceededExitCodeForManagedQueues()
+    {
+        $argv = $_SERVER['argv'];
+        $_SERVER['argv'] = ['artisan', 'queue:work'];
+
+        try {
+            CloudBootstrapper::registerEvents($this->app);
+            CloudBootstrapper::bootManagedQueues($this->app);
+
+            Worker::$memoryExceededExitCode = Worker::EXIT_SUCCESS;
+            $this->assertSame(Worker::EXIT_SUCCESS, Worker::$memoryExceededExitCode);
+
+            $this->app['queue']->connection('cloud');
+            $this->assertNull(Worker::$memoryExceededExitCode);
+        } finally {
+            $_SERVER['argv'] = $argv;
+        }
+    }
+
+    #[RequiresPhpExtension('pcntl')]
+    public function testItExitsWithTheTimedOutExitCodeWhenKilledForManagedQueues()
+    {
+        $argv = $_SERVER['argv'];
+        $_SERVER['argv'] = ['artisan', 'queue:work'];
+
+        try {
+            CloudBootstrapper::registerEvents($this->app);
+            CloudBootstrapper::bootManagedQueues($this->app);
+
+            Worker::$timedOutExitCode = null;
+            Worker::killUsing(null);
+            $this->assertNull(Worker::$timedOutExitCode);
+
+            $this->app['queue']->connection('cloud');
+            $this->assertSame(124, Worker::$timedOutExitCode);
+
+            if (($pid = pcntl_fork()) === 0) {
+                $this->app['queue.worker']->kill(Worker::$timedOutExitCode, reason: WorkerStopReason::TimedOut);
+            }
+
+            pcntl_waitpid($pid, $status);
+
+            $this->assertTrue(pcntl_wifexited($status));
+            $this->assertSame(124, pcntl_wexitstatus($status));
+        } finally {
+            Worker::$timedOutExitCode = null;
+            Worker::killUsing(null);
+            $_SERVER['argv'] = $argv;
+        }
     }
 
     public function testItConfiguresCloudConnectionFromManagedQueuesConfig()
@@ -1094,27 +1189,16 @@ class QueueTest extends TestCase
         }
     }
 
-    public function testPopFlagsTheWorkerToStopWhenTheAgentIsUnreachable()
+    public function testAgentAwareDetectorTreatsAnUnreachableAgentAsALostConnection()
     {
-        $this->fakeEvents();
-        [$queue] = $this->fakeQueue();
+        $detector = new AgentAwareLostConnectionDetector(new LostConnectionDetector);
 
-        // The shared worker singleton starts out able to keep running.
-        $this->assertFalse($this->app['queue.worker']->lostConnection);
+        // An unreachable agent is treated as a lost connection so the worker exits.
+        $this->assertTrue($detector->causedByLostConnection(new AgentUnreachableException));
 
-        Http::fake(fn () => throw new ConnectionException('Connection refused'));
-
-        try {
-            $queue->pop();
-            $this->fail('Expected the unreachable agent to throw an AgentUnreachableException.');
-        } catch (AgentUnreachableException) {
-            //
-        }
-
-        // This release has no injectable LostConnectionDetector, so the queue
-        // flags the running worker directly; its daemon loop exits (lost
-        // connection) on the next tick and the pod restarts.
-        $this->assertTrue($this->app['queue.worker']->lostConnection);
+        // Everything else is delegated to the wrapped detector untouched.
+        $this->assertFalse($detector->causedByLostConnection(new \RuntimeException('boom')));
+        $this->assertTrue($detector->causedByLostConnection(new \RuntimeException('server has gone away')));
     }
 
     public function testReleasingThenFailingReportsBothOutcomesToTheAgent()

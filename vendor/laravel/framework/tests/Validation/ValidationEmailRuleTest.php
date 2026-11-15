@@ -34,6 +34,18 @@ class ValidationEmailRuleTest extends TestCase
             ['The '.self::ATTRIBUTE_REPLACED.' must be a valid email address.']
         );
 
+        $this->fails(
+            Email::default(),
+            12345,
+            ['The '.self::ATTRIBUTE_REPLACED.' must be a valid email address.']
+        );
+
+        $this->fails(
+            Rule::email(),
+            12345,
+            ['The '.self::ATTRIBUTE_REPLACED.' must be a valid email address.']
+        );
+
         $this->passes(
             Email::default(),
             'taylor@laravel.com'
@@ -44,9 +56,44 @@ class ValidationEmailRuleTest extends TestCase
             'taylor@laravel.com'
         );
 
+        $this->passes(
+            Rule::email(),
+            ['taylor@laravel.com'],
+        );
+
+        $this->passes(
+            Email::default(),
+            ['taylor@laravel.com'],
+        );
+
         $this->passes(Email::default(), null);
 
         $this->passes(Rule::email(), null);
+    }
+
+    public function testEmailLengthLimit()
+    {
+        $localPart = str_repeat('a', 64);
+        $domainAtMaximumLength = implode('.', [
+            str_repeat('a', 62),
+            str_repeat('b', 62),
+            str_repeat('c', 60),
+            str_repeat('d', 2),
+        ]);
+        $domainOverMaximumLength = implode('.', [
+            str_repeat('a', 62),
+            str_repeat('b', 62),
+            str_repeat('c', 62),
+            'd',
+        ]);
+
+        $this->passes('email', $localPart.'@'.$domainAtMaximumLength);
+
+        $this->fails(
+            'email',
+            $localPart.'@'.$domainOverMaximumLength,
+            ['The '.self::ATTRIBUTE_REPLACED.' must be a valid email address.']
+        );
     }
 
     /**
@@ -882,5 +929,7 @@ class ValidationEmailRuleTest extends TestCase
         Facade::clearResolvedInstances();
 
         Facade::setFacadeApplication(null);
+
+        parent::tearDown();
     }
 }

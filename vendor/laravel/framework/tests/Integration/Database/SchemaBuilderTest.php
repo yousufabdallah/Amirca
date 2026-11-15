@@ -4,7 +4,6 @@ namespace Illuminate\Tests\Integration\Database;
 
 use Illuminate\Database\Query\Expression;
 use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Database\Schema\Grammars\SQLiteGrammar;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Orchestra\Testbench\Attributes\RequiresDatabase;
@@ -51,11 +50,11 @@ class SchemaBuilderTest extends DatabaseTestCase
             $table->string('test_column');
         });
 
-        $blueprint = new Blueprint('test', function (Blueprint $table) {
+        $blueprint = new Blueprint($this->getConnection(), 'test', function (Blueprint $table) {
             $table->tinyInteger('test_column')->change();
         });
 
-        $blueprint->build($this->getConnection(), new SQLiteGrammar);
+        $blueprint->build();
 
         $this->assertSame('integer', Schema::getColumnType('test', 'test_column'));
     }
@@ -68,17 +67,15 @@ class SchemaBuilderTest extends DatabaseTestCase
         });
 
         foreach (['tinyText', 'text', 'mediumText', 'longText'] as $type) {
-            $blueprint = new Blueprint('test', function ($table) use ($type) {
+            $blueprint = new Blueprint($this->getConnection(), 'test', function ($table) use ($type) {
                 $table->$type('test_column')->change();
             });
-
-            $queries = $blueprint->toSql($this->getConnection(), $this->getConnection()->getSchemaGrammar());
 
             $uppercase = strtolower($type);
 
             $expected = ["alter table `test` modify `test_column` $uppercase not null"];
 
-            $this->assertEquals($expected, $queries);
+            $this->assertEquals($expected, $blueprint->toSql());
         }
     }
 
@@ -90,17 +87,15 @@ class SchemaBuilderTest extends DatabaseTestCase
         });
 
         foreach (['tinyText', 'mediumText', 'longText'] as $type) {
-            $blueprint = new Blueprint('test', function ($table) use ($type) {
+            $blueprint = new Blueprint($this->getConnection(), 'test', function ($table) use ($type) {
                 $table->$type('test_column')->change();
             });
-
-            $queries = $blueprint->toSql($this->getConnection(), $this->getConnection()->getSchemaGrammar());
 
             $lowercase = strtolower($type);
 
             $expected = ["alter table `test` modify `test_column` $lowercase not null"];
 
-            $this->assertEquals($expected, $queries);
+            $this->assertEquals($expected, $blueprint->toSql());
         }
     }
 
@@ -114,14 +109,12 @@ class SchemaBuilderTest extends DatabaseTestCase
             $table->string('nullable_column_to_not_null')->nullable();
         });
 
-        $blueprint = new Blueprint('test', function ($table) {
+        $blueprint = new Blueprint($this->getConnection(), 'test', function ($table) {
             $table->text('not_null_column_to_not_null')->change();
             $table->text('not_null_column_to_nullable')->nullable()->change();
             $table->text('nullable_column_to_nullable')->nullable()->change();
             $table->text('nullable_column_to_not_null')->change();
         });
-
-        $queries = $blueprint->toSql($this->getConnection(), $this->getConnection()->getSchemaGrammar());
 
         $expected = [
             'alter table `test` modify `not_null_column_to_not_null` text not null',
@@ -130,7 +123,7 @@ class SchemaBuilderTest extends DatabaseTestCase
             'alter table `test` modify `nullable_column_to_not_null` text not null',
         ];
 
-        $this->assertEquals($expected, $queries);
+        $this->assertEquals($expected, $blueprint->toSql());
     }
 
     public function testChangeNullableColumn()
@@ -643,7 +636,7 @@ class SchemaBuilderTest extends DatabaseTestCase
         ));
     }
 
-    #[RequiresDatabase('pgsql', '>=12.0')]
+    #[RequiresDatabase('pgsql', '>=18')]
     public function testGettingGeneratedColumns()
     {
         Schema::create('test', function (Blueprint $table) {
@@ -653,9 +646,7 @@ class SchemaBuilderTest extends DatabaseTestCase
                 $table->computed('virtual_price', 'price - 5');
                 $table->computed('stored_price', 'price - 10')->persisted();
             } else {
-                if ($this->driver !== 'pgsql') {
-                    $table->integer('virtual_price')->virtualAs('price - 5');
-                }
+                $table->integer('virtual_price')->virtualAs('price - 5');
                 $table->integer('stored_price')->storedAs('price - 10');
             }
         });
@@ -665,18 +656,17 @@ class SchemaBuilderTest extends DatabaseTestCase
         $this->assertTrue(collect($columns)->contains(
             fn ($column) => $column['name'] === 'price' && is_null($column['generation'])
         ));
-        if ($this->driver !== 'pgsql') {
-            $this->assertTrue(collect($columns)->contains(
-                fn ($column) => $column['name'] === 'virtual_price'
-                    && $column['generation']['type'] === 'virtual'
-                    && match ($this->driver) {
-                        'mysql' => $column['generation']['expression'] === '(`price` - 5)',
-                        'mariadb' => $column['generation']['expression'] === '`price` - 5',
-                        'sqlsrv' => $column['generation']['expression'] === '([price]-(5))',
-                        default => $column['generation']['expression'] === 'price - 5',
-                    }
-            ));
-        }
+        $this->assertTrue(collect($columns)->contains(
+            fn ($column) => $column['name'] === 'virtual_price'
+                && $column['generation']['type'] === 'virtual'
+                && match ($this->driver) {
+                    'mysql' => $column['generation']['expression'] === '(`price` - 5)',
+                    'mariadb' => $column['generation']['expression'] === '`price` - 5',
+                    'sqlsrv' => $column['generation']['expression'] === '([price]-(5))',
+                    'pgsql' => $column['generation']['expression'] === '(price - 5)',
+                    default => $column['generation']['expression'] === 'price - 5',
+                }
+        ));
         $this->assertTrue(collect($columns)->contains(
             fn ($column) => $column['name'] === 'stored_price'
                 && $column['generation']['type'] === 'stored'
@@ -797,18 +787,6 @@ class SchemaBuilderTest extends DatabaseTestCase
         $this->assertTrue(Schema::hasColumns('posts', ['user_name', 'title', 'votes']));
         $this->assertFalse(Schema::hasIndex('posts', ['title'], 'primary'));
         $this->assertTrue(Schema::hasIndex('posts', ['user_name'], 'unique'));
-    }
-
-    #[RequiresDatabase('sqlite')]
-    public function testSetJournalModeOnSqlite()
-    {
-        file_put_contents(DB::connection('sqlite')->getConfig('database'), '');
-
-        $this->assertSame('delete', DB::connection('sqlite')->select('PRAGMA journal_mode')[0]->journal_mode);
-
-        Schema::connection('sqlite')->setJournalMode('WAL');
-
-        $this->assertSame('wal', DB::connection('sqlite')->select('PRAGMA journal_mode')[0]->journal_mode);
     }
 
     public function testAddingMacros()

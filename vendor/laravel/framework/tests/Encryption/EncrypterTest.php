@@ -248,9 +248,11 @@ class EncrypterTest extends TestCase
 
         return [
             [['iv' => ['value_in_array'], 'value' => '', 'mac' => '']],
-            [['iv' => new class() {}, 'value' => '', 'mac' => '']],
+            [['iv' => new class() {
+            }, 'value' => '', 'mac' => '']],
             [['iv' => $validIv, 'value' => ['value_in_array'], 'mac' => '']],
-            [['iv' => $validIv, 'value' => new class() {}, 'mac' => '']],
+            [['iv' => $validIv, 'value' => new class() {
+            }, 'mac' => '']],
             [['iv' => $validIv, 'value' => '', 'mac' => ['value_in_array']]],
             [['iv' => $validIv, 'value' => '', 'mac' => null]],
             [['iv' => $validIv, 'value' => '', 'mac' => '', 'tag' => ['value_in_array']]],
@@ -266,5 +268,35 @@ class EncrypterTest extends TestCase
 
         $enc = new Encrypter(str_repeat('x', 16));
         $enc->decrypt(base64_encode(json_encode($payload)));
+    }
+
+    public function testEncryptedReturnsTrueForEncryptedValue()
+    {
+        $e = new Encrypter(str_repeat('a', 16));
+        $encrypted = $e->encrypt('foo');
+
+        $this->assertTrue(Encrypter::appearsEncrypted($encrypted));
+    }
+
+    public function testEncryptedReturnsTrueForEncryptedArray()
+    {
+        $e = new Encrypter(str_repeat('a', 16));
+        $encrypted = $e->encrypt(['foo' => 'bar']);
+
+        $this->assertTrue(Encrypter::appearsEncrypted($encrypted));
+    }
+
+    public function testEncryptedReturnsFalseForPlainText()
+    {
+        $this->assertFalse(Encrypter::appearsEncrypted('foo'));
+        $this->assertFalse(Encrypter::appearsEncrypted('APP_NAME=Laravel'));
+        $this->assertFalse(Encrypter::appearsEncrypted("APP_NAME=Laravel\nAPP_ENV=local"));
+    }
+
+    public function testEncryptedReturnsFalseForNonString()
+    {
+        $this->assertFalse(Encrypter::appearsEncrypted(123));
+        $this->assertFalse(Encrypter::appearsEncrypted(['foo' => 'bar']));
+        $this->assertFalse(Encrypter::appearsEncrypted(null));
     }
 }

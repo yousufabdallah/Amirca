@@ -2,11 +2,23 @@
 
 namespace Illuminate\Tests\Support;
 
+use Illuminate\Contracts\Routing\UrlGenerator;
 use Illuminate\Support\Uri;
 use PHPUnit\Framework\TestCase;
 
 class SupportUriTest extends TestCase
 {
+    public function test_can_build_special_urls()
+    {
+        Uri::setUrlGeneratorResolver(fn () => new CustomUrlGeneratorResolver);
+
+        $this->assertEquals('https://laravel.com/to', Uri::to('')->value());
+        $this->assertEquals('https://laravel.com/route', Uri::route('')->value());
+        $this->assertEquals('https://laravel.com/signed-route', Uri::signedRoute('')->value());
+        $this->assertEquals('https://laravel.com/signed-route', Uri::temporarySignedRoute('', '')->value());
+        $this->assertEquals('https://laravel.com/action', Uri::action('')->value());
+    }
+
     public function test_basic_uri_interactions()
     {
         $uri = Uri::of($originalUri = 'https://laravel.com/docs/installation');
@@ -30,6 +42,7 @@ class SupportUriTest extends TestCase
         $this->assertEquals('hello', $uri->fragment());
         $this->assertEquals(['version' => 1], $uri->query()->all());
         $this->assertEquals(1, $uri->query()->integer('version'));
+        $this->assertEquals('taylor:password@laravel.com', $uri->authority());
     }
 
     public function test_complicated_query_string_parsing()
@@ -125,5 +138,173 @@ class SupportUriTest extends TestCase
         $uri = Uri::of('https://laravel.com/docs/11.x/installation')->withQuery(['tags' => ['first', 'second']]);
 
         $this->assertEquals('https://laravel.com/docs/11.x/installation?tags[0]=first&tags[1]=second', $uri->decode());
+    }
+
+    public function test_with_query_if_missing()
+    {
+        // Test adding new parameters while preserving existing ones
+        $uri = Uri::of('https://laravel.com?existing=value');
+
+        $uri = $uri->withQueryIfMissing([
+            'new' => 'parameter',
+            'existing' => 'new_value',
+        ]);
+
+        $this->assertEquals('existing=value&new=parameter', $uri->query()->decode());
+
+        // Test adding complex nested arrays to empty query string
+        $uri = Uri::of('https://laravel.com');
+
+        $uri = $uri->withQueryIfMissing([
+            'name' => 'Taylor',
+            'role' => [
+                'title' => 'Developer',
+                'focus' => 'PHP',
+            ],
+            'tags' => [
+                'person',
+                'employee',
+            ],
+        ]);
+
+        $this->assertEquals('name=Taylor&role[title]=Developer&role[focus]=PHP&tags[0]=person&tags[1]=employee', $uri->query()->decode());
+
+        // Test partial array merging and preserving indexed arrays
+        $uri = Uri::of('https://laravel.com?name=Taylor&tags[0]=person');
+
+        $uri = $uri->withQueryIfMissing([
+            'name' => 'Changed',
+            'age' => 38,
+            'tags' => ['should', 'not', 'change'],
+        ]);
+
+        $this->assertEquals('name=Taylor&tags[0]=person&age=38', $uri->query()->decode());
+        $this->assertEquals(['name' => 'Taylor', 'tags' => ['person'], 'age' => 38], $uri->query()->all());
+
+        $uri = Uri::of('https://laravel.com?user[name]=Taylor');
+
+        $uri = $uri->withQueryIfMissing([
+            'user' => [
+                'name' => 'Should Not Change',
+                'age' => 38,
+            ],
+            'settings' => [
+                'theme' => 'dark',
+            ],
+        ]);
+        $this->assertEquals([
+            'user' => [
+                'name' => 'Taylor',
+            ],
+            'settings' => [
+                'theme' => 'dark',
+            ],
+        ], $uri->query()->all());
+    }
+
+    public function test_with_query_prevents_empty_query_string()
+    {
+        $uri = Uri::of('https://laravel.com');
+
+        $this->assertEquals('https://laravel.com', (string) $uri);
+        $this->assertEquals('https://laravel.com', (string) $uri->withQuery([]));
+    }
+
+    public function test_path_segments()
+    {
+        $uri = Uri::of('https://laravel.com');
+
+        $this->assertEquals([], $uri->pathSegments()->toArray());
+
+        $uri = Uri::of('https://laravel.com/one/two/three');
+
+        $this->assertEquals(['one', 'two', 'three'], $uri->pathSegments()->toArray());
+        $this->assertEquals('one', $uri->pathSegments()->first());
+
+        $uri = Uri::of('https://laravel.com/one/two/three?foo=bar');
+
+        $this->assertEquals(3, $uri->pathSegments()->count());
+
+        $uri = Uri::of('https://laravel.com/one/two/three/?foo=bar');
+
+        $this->assertEquals(3, $uri->pathSegments()->count());
+
+        $uri = Uri::of('https://laravel.com/one/two/three/#foo=bar');
+
+        $this->assertEquals(3, $uri->pathSegments()->count());
+    }
+
+    public function test_macroable()
+    {
+        Uri::macro('myMacro', function () {
+            return $this->withPath('foobar');
+        });
+
+        $uri = new Uri('https://laravel.com/');
+
+        $this->assertSame('https://laravel.com/foobar', (string) $uri->myMacro());
+    }
+}
+
+class CustomUrlGeneratorResolver implements UrlGenerator
+{
+    public function current()
+    {
+        return 'https://laravel.com/current';
+    }
+
+    public function previous($fallback = false)
+    {
+        return 'https://laravel.com/previous';
+    }
+
+    public function to($path, $extra = [], $secure = null)
+    {
+        return 'https://laravel.com/to';
+    }
+
+    public function secure($path, $parameters = [])
+    {
+        return 'https://laravel.com/secure';
+    }
+
+    public function asset($path, $secure = null)
+    {
+        return 'https://laravel.com/asset';
+    }
+
+    public function route($name, $parameters = [], $absolute = true)
+    {
+        return 'https://laravel.com/route';
+    }
+
+    public function signedRoute($name, $parameters = [], $expiration = null, $absolute = true)
+    {
+        return 'https://laravel.com/signed-route';
+    }
+
+    public function temporarySignedRoute($name, $expiration, $parameters = [], $absolute = true)
+    {
+        return 'https://laravel.com/temporary-signed-route';
+    }
+
+    public function query($path, $query = [], $extra = [], $secure = null)
+    {
+        return 'https://laravel.com/query';
+    }
+
+    public function action($action, $parameters = [], $absolute = true)
+    {
+        return 'https://laravel.com/action';
+    }
+
+    public function getRootControllerNamespace()
+    {
+        return 'App\\Http\\Controllers';
+    }
+
+    public function setRootControllerNamespace($rootNamespace)
+    {
+        return $this;
     }
 }

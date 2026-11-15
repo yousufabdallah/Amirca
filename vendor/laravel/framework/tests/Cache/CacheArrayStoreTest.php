@@ -11,9 +11,9 @@ class CacheArrayStoreTest extends TestCase
 {
     protected function tearDown(): void
     {
-        parent::tearDown();
-
         Carbon::setTestNow(null);
+
+        parent::tearDown();
     }
 
     public function testItemsCanBeSetAndRetrieved()
@@ -117,6 +117,8 @@ class CacheArrayStoreTest extends TestCase
 
     public function testNonExistingKeysCanBeIncremented()
     {
+        Carbon::setTestNow(Carbon::now());
+
         $store = new ArrayStore;
         $result = $store->increment('foo');
         $this->assertEquals(1, $result);
@@ -318,11 +320,63 @@ class CacheArrayStoreTest extends TestCase
         $this->assertFalse($secondLock->isOwnedByCurrentProcess());
     }
 
+    public function testExpiredLockCannotBeRefreshedByPreviousOwner()
+    {
+        Carbon::setTestNow(Carbon::now());
+
+        $store = new ArrayStore;
+        $lock = $store->lock('foo', 10);
+        $this->assertTrue($lock->get());
+
+        Carbon::setTestNow(Carbon::now()->addSeconds(10)->addSecond());
+
+        $this->assertFalse($lock->refresh(20));
+    }
+
     public function testRestoringNonExistingLockDoesNotOwnAnything()
     {
         $store = new ArrayStore;
         $firstLock = $store->restoreLock('foo', 'owner');
 
         $this->assertFalse($firstLock->isOwnedByCurrentProcess());
+    }
+
+    public function testCanGetAll()
+    {
+        Carbon::setTestNow(Carbon::now());
+
+        $store = new ArrayStore(false);
+        $store->put('foo', 'bar', 10);
+
+        $this->assertEquals([
+            'foo' => ['value' => 'bar', 'expiresAt' => Carbon::now()->addSeconds(10)->getPreciseTimestamp(3) / 1000],
+        ], $store->all());
+    }
+
+    public function testCanGetAllWhenSerialized()
+    {
+        Carbon::setTestNow(Carbon::now());
+
+        $store = new ArrayStore(true);
+        $store->put('foo', 'bar', 10);
+        $this->assertEquals([
+            'foo' => ['value' => 'bar', 'expiresAt' => $expiresAt = (Carbon::now()->addSeconds(10)->getPreciseTimestamp(3) / 1000)],
+        ], $store->all());
+
+        // Now let's put a serializable value in there
+        $store->forget('foo');
+        $store->put('foo', Carbon::now(), 10);
+
+        $this->assertEquals([
+            'foo' => [
+                'value' => Carbon::now(),
+                'expiresAt' => $expiresAt,
+            ],
+        ], $store->all());
+
+        $this->assertEquals(
+            serialize(Carbon::now()),
+            $store->all(false)['foo']['value']
+        );
     }
 }

@@ -11,7 +11,7 @@
     "require": {
         "php": "^8.2",
         "chillerlan/php-qrcode": "^6.0",
-        "laravel/framework": "^11.31",
+        "laravel/framework": "^12.71",
         "laravel/tinker": "^2.9",
         "mpdf/mpdf": "^8.3",
         "phpoffice/phpspreadsheet": "^5.11"

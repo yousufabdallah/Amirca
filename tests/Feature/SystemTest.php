@@ -223,4 +223,25 @@ class SystemTest extends TestCase
             Storage::disk('local')->delete('backups/'.$f['name']);
         }
     }
+
+    public function test_default_admin_password_must_be_changed(): void
+    {
+        $this->post('/admin/login', ['login' => 'admin', 'password' => 'ChangeMe@2026'])->assertRedirect('/admin');
+        $this->get('/admin')->assertRedirect('/admin/account');
+        $this->get('/admin/clients')->assertRedirect('/admin/account');
+        $this->put('/admin/account/password', ['current_password' => 'ChangeMe@2026', 'password' => 'ChangeMe@2026', 'password_confirmation' => 'ChangeMe@2026'])->assertSessionHasErrors('password');
+        $this->put('/admin/account/password', ['current_password' => 'ChangeMe@2026', 'password' => 'NewStrong123', 'password_confirmation' => 'NewStrong123'])->assertSessionHas('success');
+        $this->get('/admin')->assertOk();
+    }
+
+    public function test_notification_links_cannot_redirect_offsite(): void
+    {
+        $admin = $this->admin();
+        foreach (['http://localhost.evil.com/x', 'https://evil.com', '//evil.com'] as $bad) {
+            $n = \App\Models\AppNotification::create(['user_id' => $admin->id, 'type' => 't', 'title' => 't', 'url' => $bad]);
+            $this->actingAs($admin)->get("/admin/notifications/{$n->id}")->assertRedirect(route('admin.notifications.index'));
+        }
+        $ok = \App\Models\AppNotification::create(['user_id' => $admin->id, 'type' => 't', 'title' => 't', 'url' => url('/admin/clients')]);
+        $this->get("/admin/notifications/{$ok->id}")->assertRedirect(url('/admin/clients'));
+    }
 }

@@ -68,6 +68,8 @@ class DatabaseEloquentHasOneOfManyTest extends TestCase
         $this->schema()->drop('logins');
         $this->schema()->drop('states');
         $this->schema()->drop('prices');
+
+        parent::tearDown();
     }
 
     public function testItGuessesRelationName()
@@ -97,6 +99,13 @@ class DatabaseEloquentHasOneOfManyTest extends TestCase
         // Using "oldestOfMAny"
         $relation = $user->latest_login()->oldestOfMAny('id', 'baz');
         $this->assertSame('baz', $relation->getRelationName());
+    }
+
+    public function testCorrectLatestOfManyQuery(): void
+    {
+        $user = HasOneOfManyTestUser::create();
+        $relation = $user->latest_login();
+        $this->assertSame('select "logins".* from "logins" inner join (select MAX("logins"."id") as "id_aggregate", "logins"."user_id" from "logins" where "logins"."user_id" = ? and "logins"."user_id" is not null group by "logins"."user_id") as "latest_login" on "latest_login"."id_aggregate" = "logins"."id" and "latest_login"."user_id" = "logins"."user_id" where "logins"."user_id" = ? and "logins"."user_id" is not null', $relation->getQuery()->toSql());
     }
 
     public function testEagerLoadingAppliesConstraintsToInnerJoinSubQuery()
@@ -591,7 +600,7 @@ class HasOneOfManyTestUser extends Eloquent
     public function foo_state()
     {
         return $this->hasOne(HasOneOfManyTestState::class, 'user_id')->ofMany(
-            ['id' => 'max'],
+            [], // should automatically add 'id' => 'max'
             function ($q) {
                 $q->where('type', 'foo');
             }

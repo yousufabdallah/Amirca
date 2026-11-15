@@ -5,7 +5,16 @@
  */
 $root = dirname(__DIR__);
 $envFile = $root.'/.env';
-if (file_exists($envFile) && ! file_exists($root.'/storage/app/.installing')) {
+$lock = $root.'/storage/app/installed.lock';
+// بعد التثبيت يُقفل المعالج نهائيًا حتى لو حُذف .env (منع إعادة التثبيت بقاعدة مهاجم)
+if (file_exists($envFile) && ! file_exists($lock)) {
+    @file_put_contents($lock, date('c'));
+}
+if (file_exists($lock) && ! file_exists($root.'/storage/app/.installing')) {
+    http_response_code(file_exists($envFile) ? 302 : 403);
+    if (! file_exists($envFile)) {
+        exit('النظام مثبت مسبقًا. ملف .env مفقود؛ استعده من النسخة الاحتياطية أو احذف storage/app/installed.lock لإعادة التثبيت.');
+    }
     header('Location: ./');
     exit;
 }
@@ -55,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $env = file_get_contents($root.'/.env.example');
         $set = [
             'APP_KEY' => $key, 'APP_URL' => $appUrl, 'APP_ENV' => 'production', 'APP_DEBUG' => 'false',
-            'DB_HOST' => $db['host'], 'DB_PORT' => $db['port'], 'DB_DATABASE' => envq($db['name']), 'DB_USERNAME' => envq($db['user']), 'DB_PASSWORD' => envq($db['pass']),
+            'DB_HOST' => envq($db['host']), 'DB_PORT' => (string) (int) $db['port'], 'DB_DATABASE' => envq($db['name']), 'DB_USERNAME' => envq($db['user']), 'DB_PASSWORD' => envq($db['pass']),
             'ADMIN_USERNAME' => envq($adminUser), 'ADMIN_PASSWORD' => envq($adminPass), 'ADMIN_EMAIL' => envq($in('admin_email')),
             'SESSION_SECURE_COOKIE' => $scheme === 'https' ? 'true' : 'false',
             'MAIL_MAILER' => 'log',
@@ -80,6 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $env = preg_replace('/^ADMIN_PASSWORD=.*$/m', 'ADMIN_PASSWORD=', file_get_contents($envFile));
                 file_put_contents($envFile, $env);
                 $kernel->call('view:cache');
+                @file_put_contents($lock, date('c'));
                 @unlink($root.'/storage/app/.installing');
                 $done = true;
             } catch (Throwable $e) {

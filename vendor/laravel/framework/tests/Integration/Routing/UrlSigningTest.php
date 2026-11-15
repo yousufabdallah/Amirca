@@ -14,13 +14,6 @@ use Orchestra\Testbench\TestCase;
 
 class UrlSigningTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-
-        Carbon::setTestNow(null);
-    }
-
     protected function defineEnvironment($app): void
     {
         $app['config']->set(['app.key' => 'AckfSECXIvnK5r28GVIWUAxmbBSjTsmF']);
@@ -57,6 +50,31 @@ class UrlSigningTest extends TestCase
             $this->assertSame('routable-slug', $response->original['slug']);
 
             $this->assertSame('routable-slug', $response->baseRequest->route('post'));
+        });
+    }
+
+    public function testSigningUrlWithPercentSignInRouteSlug()
+    {
+        Route::get('/foo/{post:slug}', function (Request $request, $slug) {
+            return ['slug' => $slug, 'valid' => $request->hasValidSignature() ? 'valid' : 'invalid'];
+        })->name('foo');
+
+        $model = new RoutableInterfaceStub;
+        $model->slug = '%66oo';
+
+        // The percent sign has to be escaped in the generated URL. Otherwise the router
+        // decodes "%66" back into an "f" when matching the URL and binds a different
+        // model than the one the URL was generated for...
+        $this->assertSame(
+            '/foo/%2566oo',
+            parse_url($url = URL::signedRoute('foo', ['post' => $model]), PHP_URL_PATH)
+        );
+
+        tap($this->get($url), function ($response) {
+            $this->assertSame('valid', $response->original['valid']);
+            $this->assertSame('%66oo', $response->original['slug']);
+
+            $this->assertSame('%66oo', $response->baseRequest->route('post'));
         });
     }
 
@@ -149,7 +167,7 @@ class UrlSigningTest extends TestCase
     {
         Route::get('/foo/{id}', function (Request $request, $id) {
             return $request->hasValidSignature()
-                && intval($id) === 1
+                && (int) $id === 1
                 && $request->has('paramEmpty')
                 && $request->has('paramEmptyString')
                 && $request->query('paramWithValue') === 'value'

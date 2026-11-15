@@ -2,20 +2,22 @@
 
 namespace Illuminate\Tests\Database;
 
+use Closure;
 use Exception;
-use Illuminate\Database\ConnectionInterface;
+use Illuminate\Database\Connection;
 use Illuminate\Database\ConnectionResolverInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Carbon;
-use Mockery;
+use Mockery as m;
 use PDO;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class DatabaseEloquentBuilderCreateOrFirstTest extends TestCase
 {
-    public function setUp(): void
+    protected function setUp(): void
     {
         Carbon::setTestNow('2023-01-01 00:00:00');
     }
@@ -23,10 +25,12 @@ class DatabaseEloquentBuilderCreateOrFirstTest extends TestCase
     protected function tearDown(): void
     {
         Carbon::setTestNow();
-        Mockery::close();
+
+        parent::tearDown();
     }
 
-    public function testCreateOrFirstMethodCreatesNewRecord(): void
+    #[DataProvider('createOrFirstValues')]
+    public function testCreateOrFirstMethodCreatesNewRecord(Closure|array $values): void
     {
         $model = new EloquentBuilderCreateOrFirstTestModel();
         $this->mockConnectionForModel($model, 'SQLite', [123]);
@@ -38,7 +42,7 @@ class DatabaseEloquentBuilderCreateOrFirstTest extends TestCase
             ['foo', 'bar', '2023-01-01 00:00:00', '2023-01-01 00:00:00'],
         )->andReturnTrue();
 
-        $result = $model->newQuery()->createOrFirst(['attr' => 'foo'], ['val' => 'bar']);
+        $result = $model->newQuery()->createOrFirst(['attr' => 'foo'], $values);
         $this->assertTrue($result->wasRecentlyCreated);
         $this->assertEquals([
             'id' => 123,
@@ -469,23 +473,33 @@ class DatabaseEloquentBuilderCreateOrFirstTest extends TestCase
         ], $result->toArray());
     }
 
+    public static function createOrFirstValues(): array
+    {
+        return [
+            'array' => [['val' => 'bar']],
+            'closure' => [fn () => ['val' => 'bar']],
+        ];
+    }
+
     protected function mockConnectionForModel(Model $model, string $database, array $lastInsertIds = []): void
     {
         $grammarClass = 'Illuminate\Database\Query\Grammars\\'.$database.'Grammar';
         $processorClass = 'Illuminate\Database\Query\Processors\\'.$database.'Processor';
-        $grammar = new $grammarClass;
         $processor = new $processorClass;
-        $connection = Mockery::mock(ConnectionInterface::class, ['getQueryGrammar' => $grammar, 'getPostProcessor' => $processor]);
+        $connection = m::mock(Connection::class, ['getPostProcessor' => $processor]);
+        $grammar = new $grammarClass($connection);
+        $connection->shouldReceive('getQueryGrammar')->andReturn($grammar);
+        $connection->shouldReceive('getTablePrefix')->andReturn('');
         $connection->shouldReceive('query')->andReturnUsing(function () use ($connection, $grammar, $processor) {
             return new Builder($connection, $grammar, $processor);
         });
         $connection->shouldReceive('getDatabaseName')->andReturn('database');
-        $resolver = Mockery::mock(ConnectionResolverInterface::class, ['connection' => $connection]);
+        $resolver = m::mock(ConnectionResolverInterface::class, ['connection' => $connection]);
 
         $class = get_class($model);
         $class::setConnectionResolver($resolver);
 
-        $connection->shouldReceive('getPdo')->andReturn($pdo = Mockery::mock(PDO::class));
+        $connection->shouldReceive('getPdo')->andReturn($pdo = m::mock(PDO::class));
 
         foreach ($lastInsertIds as $id) {
             $pdo->expects('lastInsertId')->andReturn($id);

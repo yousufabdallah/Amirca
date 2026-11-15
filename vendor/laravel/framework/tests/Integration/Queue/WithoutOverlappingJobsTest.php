@@ -151,6 +151,51 @@ class WithoutOverlappingJobsTest extends QueueTestCase
             (new WithoutOverlapping('key'))->withPrefix('prefix:')->shared()->getLockKey($job)
         );
     }
+
+    public function testGetLockUsesDisplayName()
+    {
+        $job = new OverlappingTestJobWithDisplayName;
+
+        $this->assertSame(
+            'laravel-queue-overlap:'.hash('xxh128', 'App\\Actions\\WithoutOverlappingTestAction').':key',
+            (new WithoutOverlapping('key'))->getLockKey($job)
+        );
+
+        $this->assertSame(
+            'laravel-queue-overlap:key',
+            (new WithoutOverlapping('key'))->shared()->getLockKey($job)
+        );
+
+        $this->assertSame(
+            'prefix:'.hash('xxh128', 'App\\Actions\\WithoutOverlappingTestAction').':key',
+            (new WithoutOverlapping('key'))->withPrefix('prefix:')->getLockKey($job)
+        );
+
+        $this->assertSame(
+            'prefix:key',
+            (new WithoutOverlapping('key'))->withPrefix('prefix:')->shared()->getLockKey($job)
+        );
+
+        $this->assertSame(
+            'prefix:'.hash('xxh128', 'App\\Actions\\WithoutOverlappingTestAction').':unit',
+            (new WithoutOverlapping(UnitCategory::unit))->withPrefix('prefix:')->getLockKey($job)
+        );
+
+        $this->assertSame(
+            'prefix:unit',
+            (new WithoutOverlapping(UnitCategory::unit))->withPrefix('prefix:')->shared()->getLockKey($job)
+        );
+
+        $this->assertSame(
+            'prefix:'.hash('xxh128', 'App\\Actions\\WithoutOverlappingTestAction').':backed',
+            (new WithoutOverlapping(BackedCategory::backed))->withPrefix('prefix:')->getLockKey($job)
+        );
+
+        $this->assertSame(
+            'prefix:backed',
+            (new WithoutOverlapping(BackedCategory::backed))->withPrefix('prefix:')->shared()->getLockKey($job)
+        );
+    }
 }
 
 class OverlappingTestJob
@@ -220,4 +265,22 @@ class OverlappingTestJobWithSharedKeyTwo
     {
         return [(new WithoutOverlapping)->shared()];
     }
+}
+
+class OverlappingTestJobWithDisplayName extends OverlappingTestJob
+{
+    public function displayName(): string
+    {
+        return 'App\\Actions\\WithoutOverlappingTestAction';
+    }
+}
+
+enum UnitCategory
+{
+    case unit;
+}
+
+enum BackedCategory: string
+{
+    case backed = 'backed';
 }

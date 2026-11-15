@@ -25,6 +25,11 @@ class EnsureBackoffice
             return redirect()->route('admin.login')->withErrors(['login' => 'تم تعطيل حسابك. يرجى التواصل مع المدير.']);
         }
 
+        // إجبار تغيير كلمة المرور الافتراضية المعروفة قبل استخدام النظام
+        if ($request->session()->get('must_change_password') && ! $request->routeIs('admin.account', 'admin.account.password', 'admin.logout', 'admin.notifications.count')) {
+            return redirect()->route('admin.account')->with('warning', 'لأمان النظام: يجب تغيير كلمة المرور الافتراضية قبل المتابعة.');
+        }
+
         return $next($request);
     }
 }

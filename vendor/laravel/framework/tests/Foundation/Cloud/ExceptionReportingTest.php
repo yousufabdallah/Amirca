@@ -1634,10 +1634,9 @@ class ExceptionReportingTest extends TestCase
 
         ($this->exceptionReporter())(new RuntimeException('Whoops!'));
 
-        // The guard is hit twice by the exception context, as "id()" retrieves
-        // the user before reading its identifier on 11.x, and again by the
+        // The guard is hit by the exception context and again by the
         // reporter, which reads the user the guard has now retrieved.
-        $this->assertSame(3, $guard->calls);
+        $this->assertSame(2, $guard->calls);
         $this->assertCount(1, $streams);
         $streams[0]->assertWrittenJsonContains(['user_id' => 'abc123', 'message' => 'Whoops!']);
     }

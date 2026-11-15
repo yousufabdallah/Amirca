@@ -386,6 +386,21 @@ class RoutingRouteTest extends TestCase
         unset($_SERVER['__middleware.group']);
     }
 
+    public function testMiddlewareGroupsCannotReferenceItself()
+    {
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('[web] middleware group is referencing itself.');
+
+        $router = $this->getRouter();
+        $router->get('foo/bar', ['middleware' => 'web', function () {
+            return 'hello';
+        }]);
+
+        $router->middlewareGroup('web', ['web']);
+
+        $router->dispatch(Request::create('foo/bar', 'GET'));
+    }
+
     public function testFluentRouteNamingWithinAGroup()
     {
         $router = $this->getRouter();
@@ -781,9 +796,7 @@ class RoutingRouteTest extends TestCase
 
     public function testMatchesMethodAgainstRequests()
     {
-        /*
-         * Basic
-         */
+        // Basic
         $request = Request::create('foo/bar', 'GET');
         $route = new Route('GET', 'foo/{bar}', function () {
             //
@@ -796,9 +809,7 @@ class RoutingRouteTest extends TestCase
         });
         $this->assertFalse($route->matches($request));
 
-        /*
-         * Method checks
-         */
+        // Method checks
         $request = Request::create('foo/bar', 'GET');
         $route = new Route('GET', 'foo/{bar}', function () {
             //
@@ -811,9 +822,7 @@ class RoutingRouteTest extends TestCase
         });
         $this->assertFalse($route->matches($request));
 
-        /*
-         * Domain checks
-         */
+        // Domain checks
         $request = Request::create('http://something.foo.com/foo/bar', 'GET');
         $route = new Route('GET', 'foo/{bar}', ['domain' => '{foo}.foo.com', function () {
             //
@@ -826,9 +835,7 @@ class RoutingRouteTest extends TestCase
         }]);
         $this->assertFalse($route->matches($request));
 
-        /*
-         * HTTPS checks
-         */
+        // HTTPS checks
         $request = Request::create('https://foo.com/foo/bar', 'GET');
         $route = new Route('GET', 'foo/{bar}', ['https', function () {
             //
@@ -847,9 +854,7 @@ class RoutingRouteTest extends TestCase
         }]);
         $this->assertFalse($route->matches($request));
 
-        /*
-         * HTTP checks
-         */
+        // HTTP checks
         $request = Request::create('https://foo.com/foo/bar', 'GET');
         $route = new Route('GET', 'foo/{bar}', ['http', function () {
             //
@@ -906,9 +911,7 @@ class RoutingRouteTest extends TestCase
         $route->where('bar', '123|456');
         $this->assertFalse($route->matches($request));
 
-        /*
-         * Optional
-         */
+        // Optional
         $request = Request::create('foo/123', 'GET');
         $route = new Route('GET', 'foo/{bar?}', function () {
             //
@@ -944,9 +947,7 @@ class RoutingRouteTest extends TestCase
         $route->where('bar', '[0-9]+');
         $this->assertFalse($route->matches($request));
 
-        /*
-         * Conditional
-         */
+        // Conditional
         $route = new Route('GET', '{subdomain}.awesome.test', function () {
             //
         });
@@ -1196,9 +1197,7 @@ class RoutingRouteTest extends TestCase
 
     public function testRouteGrouping()
     {
-        /*
-         * getPrefix() method
-         */
+        // getPrefix() method
         $router = $this->getRouter();
         $router->group(['prefix' => 'foo'], function () use ($router) {
             $router->get('bar', function () {
@@ -1275,9 +1274,7 @@ class RoutingRouteTest extends TestCase
 
     public function testNestedRouteGroupingWithAs()
     {
-        /*
-         * nested with all layers present
-         */
+        // nested with all layers present
         $router = $this->getRouter();
         $router->group(['prefix' => 'foo', 'as' => 'Foo::'], function () use ($router) {
             $router->group(['prefix' => 'bar', 'as' => 'Bar::'], function () use ($router) {
@@ -1290,9 +1287,7 @@ class RoutingRouteTest extends TestCase
         $route = $routes->getByName('Foo::Bar::baz');
         $this->assertSame('foo/bar/baz', $route->uri());
 
-        /*
-         * nested with layer skipped
-         */
+        // nested with layer skipped
         $router = $this->getRouter();
         $router->group(['prefix' => 'foo', 'as' => 'Foo::'], function () use ($router) {
             $router->group(['prefix' => 'bar'], function () use ($router) {
@@ -1308,9 +1303,7 @@ class RoutingRouteTest extends TestCase
 
     public function testNestedRouteGroupingPrefixing()
     {
-        /*
-         * nested with layer skipped
-         */
+        // nested with layer skipped
         $router = $this->getRouter();
         $router->group(['prefix' => 'foo', 'as' => 'Foo::'], function () use ($router) {
             $router->prefix('bar')->get('baz', ['as' => 'baz', function () {
@@ -1340,9 +1333,7 @@ class RoutingRouteTest extends TestCase
 
     public function testRoutePrefixing()
     {
-        /*
-         * Prefix route
-         */
+        // Prefix route
         $router = $this->getRouter();
         $router->get('foo/bar', function () {
             return 'hello';
@@ -1352,9 +1343,7 @@ class RoutingRouteTest extends TestCase
         $routes[0]->prefix('prefix');
         $this->assertSame('prefix/foo/bar', $routes[0]->uri());
 
-        /*
-         * Use empty prefix
-         */
+        // Use empty prefix
         $router = $this->getRouter();
         $router->get('foo/bar', function () {
             return 'hello';
@@ -1364,9 +1353,7 @@ class RoutingRouteTest extends TestCase
         $routes[0]->prefix('/');
         $this->assertSame('foo/bar', $routes[0]->uri());
 
-        /*
-         * Prefix homepage
-         */
+        // Prefix homepage
         $router = $this->getRouter();
         $router->get('/', function () {
             return 'hello';
@@ -1376,9 +1363,7 @@ class RoutingRouteTest extends TestCase
         $routes[0]->prefix('prefix');
         $this->assertSame('prefix', $routes[0]->uri());
 
-        /*
-         * Prefix homepage with empty prefix
-         */
+        // Prefix homepage with empty prefix
         $router = $this->getRouter();
         $router->get('/', function () {
             return 'hello';
@@ -2248,6 +2233,15 @@ class RoutingRouteTest extends TestCase
 
         $this->assertEquals([
             'can:create',
+        ], $route->middleware());
+
+        $route = new Route(['GET'], '/', []);
+        $route->can('create');
+        $route->can('update');
+
+        $this->assertEquals([
+            'can:create',
+            'can:update',
         ], $route->middleware());
     }
 

@@ -9,10 +9,10 @@ class OnceTest extends TestCase
 {
     protected function tearDown(): void
     {
-        parent::tearDown();
-
         Once::flush();
         Once::enable();
+
+        parent::tearDown();
     }
 
     public function testResultMemoization()
@@ -363,6 +363,14 @@ class OnceTest extends TestCase
         $this->assertSame($instance->null(), $instance->null());
         $this->assertSame(1, $instance->i);
     }
+
+    public function testExtendedStaticClassOnceCalls()
+    {
+        $first = MyClass::staticRand();
+        $second = MyExtendedClass::staticRand();
+
+        $this->assertNotSame($first, $second);
+    }
 }
 
 $letter = 'a';
@@ -391,4 +399,8 @@ class MyClass
     {
         return once(fn () => $this->rand());
     }
+}
+
+class MyExtendedClass extends MyClass
+{
 }

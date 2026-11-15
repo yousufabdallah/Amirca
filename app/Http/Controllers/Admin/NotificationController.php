@@ -35,7 +35,18 @@ class NotificationController extends Controller
         $n = AppNotification::where('user_id', $request->user()->id)->findOrFail($notification);
         $n->update(['read_at' => $n->read_at ?? now()]);
 
-        return redirect($n->url && str_starts_with($n->url, url('/')) ? $n->url : route('admin.notifications.index'));
+        return redirect(self::isInternal($n->url) ? $n->url : route('admin.notifications.index'));
+    }
+
+    /** يمنع التحويل لمواقع خارجية (مثل https://domain.evil.com) */
+    public static function isInternal(?string $url, string $prefix = '/'): bool
+    {
+        if (! $url) {
+            return false;
+        }
+        $base = rtrim(url('/'), '/');
+
+        return $url === $base || str_starts_with($url, $base.rtrim($prefix, '/').'/') || $url === $base.rtrim($prefix, '/');
     }
 
     public function readAll(Request $request)

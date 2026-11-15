@@ -25,7 +25,7 @@ class UpdatesController extends Controller
         $n = AppNotification::where('user_id', $request->user()->id)->findOrFail($notification);
         $n->update(['read_at' => $n->read_at ?? now()]);
 
-        return redirect($n->url && str_starts_with($n->url, url('/portal')) ? $n->url : route('portal.updates'));
+        return redirect(\App\Http\Controllers\Admin\NotificationController::isInternal($n->url, '/portal') ? $n->url : route('portal.updates'));
     }
 
     public function readAll(Request $request)

@@ -10,17 +10,11 @@ use PHPUnit\Framework\TestCase;
 
 class DatabasePostgresQueryGrammarTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-        m::close();
-    }
-
     public function testToRawSql()
     {
         $connection = m::mock(Connection::class);
         $connection->shouldReceive('escape')->with('foo', false)->andReturn("'foo'");
-        $grammar = new PostgresGrammar;
-        $grammar->setConnection($connection);
+        $grammar = new PostgresGrammar($connection);
 
         $query = $grammar->substituteBindingsIntoRawSql(
             'select * from "users" where \'{}\' ?? \'Hello\\\'\\\'World?\' AND "email" = ?',
@@ -36,8 +30,7 @@ class DatabasePostgresQueryGrammarTest extends TestCase
         PostgresGrammar::customOperators(['@@>', 1]);
 
         $connection = m::mock(Connection::class);
-        $grammar = new PostgresGrammar;
-        $grammar->setConnection($connection);
+        $grammar = new PostgresGrammar($connection);
 
         $operators = $grammar->getOperators();
 
@@ -51,7 +44,10 @@ class DatabasePostgresQueryGrammarTest extends TestCase
 
     public function testCompileTruncate()
     {
-        $postgres = new PostgresGrammar;
+        $connection = m::mock(Connection::class);
+        $connection->shouldReceive('getTablePrefix')->andReturn('');
+
+        $postgres = new PostgresGrammar($connection);
         $builder = m::mock(Builder::class);
         $builder->from = 'users';
 
@@ -59,13 +55,13 @@ class DatabasePostgresQueryGrammarTest extends TestCase
             'truncate "users" restart identity cascade' => [],
         ], $postgres->compileTruncate($builder));
 
-        PostgresGrammar::cascadeOnTrucate(false);
+        PostgresGrammar::cascadeOnTruncate(false);
 
         $this->assertEquals([
             'truncate "users" restart identity' => [],
         ], $postgres->compileTruncate($builder));
 
-        PostgresGrammar::cascadeOnTrucate();
+        PostgresGrammar::cascadeOnTruncate();
 
         $this->assertEquals([
             'truncate "users" restart identity cascade' => [],

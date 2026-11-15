@@ -14,11 +14,6 @@ use function Orchestra\Testbench\package_version_compare;
 
 class QueueListenerTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-        m::close();
-    }
-
     public function testRunProcessCallsProcess()
     {
         $process = m::mock(Process::class)->makePartial();

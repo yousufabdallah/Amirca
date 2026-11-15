@@ -11,11 +11,6 @@ use PHPUnit\Framework\TestCase;
 
 class DatabaseMySQLSchemaBuilderTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-        m::close();
-    }
-
     public function testHasTable()
     {
         $connection = m::mock(Connection::class);
@@ -38,7 +33,7 @@ class DatabaseMySQLSchemaBuilderTest extends TestCase
         $connection->shouldReceive('getDatabaseName')->andReturn('db');
         $connection->shouldReceive('getSchemaGrammar')->andReturn($grammar);
         $connection->shouldReceive('getPostProcessor')->andReturn($processor);
-        $grammar->shouldReceive('compileColumns')->with('db', 'prefix_table')->once()->andReturn('sql');
+        $grammar->shouldReceive('compileColumns')->with(null, 'prefix_table')->once()->andReturn('sql');
         $processor->shouldReceive('processColumns')->once()->andReturn([['name' => 'column']]);
         $builder = new MySqlBuilder($connection);
         $connection->shouldReceive('getTablePrefix')->once()->andReturn('prefix_');

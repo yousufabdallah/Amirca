@@ -19,12 +19,13 @@ class AccountController extends Controller
     {
         $request->validate([
             'current_password' => 'required|current_password',
-            'password' => ['required', 'confirmed', Password::min(8)->letters()->numbers()],
+            'password' => ['required', 'confirmed', 'different:current_password', 'not_in:ChangeMe@2026', Password::min(8)->letters()->numbers()],
         ], ['current_password.current_password' => 'كلمة المرور الحالية غير صحيحة.'], ['password' => 'كلمة المرور الجديدة']);
         $user = $request->user();
         $user->password = $request->input('password');
         $user->save();
         Auth::logoutOtherDevices($request->input('password'));
+        $request->session()->forget('must_change_password');
         AuditLog::record('auth.password', 'تغيير كلمة المرور للحساب '.$user->name, $user);
 
         return back()->with('success', 'تم تغيير كلمة المرور بنجاح.');

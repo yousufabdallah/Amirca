@@ -9,11 +9,6 @@ use PHPUnit\Framework\TestCase;
 
 class TranslationFileLoaderTest extends TestCase
 {
-    protected function tearDown(): void
-    {
-        m::close();
-    }
-
     public function testLoadMethodLoadsTranslationsFromAddedPath()
     {
         $files = m::mock(Filesystem::class);
@@ -27,6 +22,35 @@ class TranslationFileLoaderTest extends TestCase
         $files->shouldReceive('getRequire')->once()->with(__DIR__.'/another/en/messages.php')->andReturn(['baz' => 'backagesplash']);
 
         $this->assertEquals(['foo' => 'bar', 'baz' => 'backagesplash'], $loader->load('en', 'messages'));
+    }
+
+    public function testLoadMethodIgnoresLocalesAndGroupsContainingPathTraversal()
+    {
+        $files = m::mock(Filesystem::class);
+        $files->shouldNotReceive('exists');
+        $files->shouldNotReceive('getRequire');
+        $loader = new FileLoader($files, __DIR__);
+        $loader->addNamespace('namespace', __DIR__.'/namespace');
+
+        $this->assertEquals([], $loader->load('../secret', 'config'));
+        $this->assertEquals([], $loader->load('..\\secret', 'config'));
+        $this->assertEquals([], $loader->load('..', 'secret/config'));
+        $this->assertEquals([], $loader->load("en\0", 'messages'));
+        $this->assertEquals([], $loader->load('en', '../../secret/config'));
+        $this->assertEquals([], $loader->load('en', '..\\secret\\config'));
+        $this->assertEquals([], $loader->load('../secret', 'config', 'namespace'));
+        $this->assertEquals([], $loader->load('../secret', '*', '*'));
+    }
+
+    public function testLoadMethodAllowsGroupsInSubdirectories()
+    {
+        $files = m::mock(Filesystem::class);
+        $loader = new FileLoader($files, __DIR__);
+
+        $files->shouldReceive('exists')->once()->with(__DIR__.'/en/admin/messages.php')->andReturn(true);
+        $files->shouldReceive('getRequire')->once()->with(__DIR__.'/en/admin/messages.php')->andReturn(['foo' => 'bar']);
+
+        $this->assertEquals(['foo' => 'bar'], $loader->load('en', 'admin/messages'));
     }
 
     public function testLoadMethodHandlesMissingAddedPath()
@@ -144,6 +168,20 @@ class TranslationFileLoaderTest extends TestCase
         $loader->addNamespace('namespace', 'test-namespace-dir');
 
         $this->assertEquals(['foo' => 'override-2', 'baz' => 'boom-2'], $loader->load('en', 'foo', 'namespace'));
+    }
+
+    public function testLoadMethodWithNamespacesProperlyCallsLoaderAndLoadsLocalOverridesWithMultiplePathsWithMissingKey()
+    {
+        $loader = new FileLoader($files = m::mock(Filesystem::class), [__DIR__, __DIR__.'/second']);
+        $files->shouldReceive('exists')->once()->with('test-namespace-dir/en/foo.php')->andReturn(true);
+        $files->shouldReceive('exists')->once()->with(__DIR__.'/vendor/namespace/en/foo.php')->andReturn(true);
+        $files->shouldReceive('exists')->once()->with(__DIR__.'/second/vendor/namespace/en/foo.php')->andReturn(true);
+        $files->shouldReceive('getRequire')->once()->with('test-namespace-dir/en/foo.php')->andReturn(['foo' => 'bar']);
+        $files->shouldReceive('getRequire')->once()->with(__DIR__.'/vendor/namespace/en/foo.php')->andReturn(['foo' => 'override', 'baz' => 'boom']);
+        $files->shouldReceive('getRequire')->once()->with(__DIR__.'/second/vendor/namespace/en/foo.php')->andReturn(['baz' => 'boom-2']);
+        $loader->addNamespace('namespace', 'test-namespace-dir');
+
+        $this->assertEquals(['foo' => 'override', 'baz' => 'boom-2'], $loader->load('en', 'foo', 'namespace'));
     }
 
     public function testEmptyArraysReturnedWhenFilesDontExist()

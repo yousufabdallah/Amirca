@@ -53,6 +53,9 @@ trait LoginThrottle
         }
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
+        if ($user->isBackoffice() && $request->input('password') === 'ChangeMe@2026') {
+            $request->session()->put('must_change_password', true);
+        }
         $user->forceFill(['last_login_at' => now(), 'last_login_ip' => $request->ip()])->save();
         AuditLog::record('auth.login', 'تسجيل دخول: '.$user->name, $user);
 

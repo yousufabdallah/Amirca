@@ -6,7 +6,7 @@
 - **بوابة العميل** `/login` ثم `/portal`: يرى العميل سياراته فقط، مع الصور ومراحل الشحن وموعد الوصول والمدفوع والمتبقي والإيصالات والمستندات.
 
 ## التقنيات
-Laravel 11 · PHP 8.2+ · MySQL/MariaDB · Bootstrap 5 RTL · JavaScript/AJAX · mPDF (PDF بالعربية) · PhpSpreadsheet (Excel).
+Laravel 12 · PHP 8.2+ · MySQL/MariaDB · Bootstrap 5 RTL · JavaScript/AJAX · mPDF (PDF بالعربية) · PhpSpreadsheet (Excel).
 لا يحتاج Node.js. مكتبات الواجهة محفوظة داخل `public/assets/vendor` (لا اعتماد على CDN، عدا خطوط Google).
 
 ## التثبيت المحلي
