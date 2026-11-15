@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+    @include('partials.head')
+    <link rel="stylesheet" href="{{ asset('assets/css/site.css') }}?v=1">
+    <title>{{ setting('office_name') }} — {{ setting('office_tagline') }}</title>
+    <meta name="description" content="{{ setting('hero_subtitle') }}">
+    <meta property="og:title" content="{{ setting('office_name') }}">
+    <meta property="og:description" content="{{ setting('office_tagline') }}">
+</head>
+<body class="site">
+@php($wa = preg_replace('/\D/', '', (string) setting('whatsapp')))
+<nav class="s-nav navbar navbar-expand-lg" id="siteNav">
+    <div class="container">
+        <a class="brand" href="#top">@include('partials.logo')<div><strong>{{ setting('office_name') }}</strong><small>Import &amp; Export</small></div></a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-label="القائمة"><i class="bi bi-list fs-3 text-white"></i></button>
+        <div class="collapse navbar-collapse" id="navMenu">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item"><a class="nav-link" href="#top">الرئيسية</a></li>
+                <li class="nav-item"><a class="nav-link" href="#about">من نحن</a></li>
+                <li class="nav-item"><a class="nav-link" href="#services">خدماتنا</a></li>
+                <li class="nav-item"><a class="nav-link" href="#steps">خطوات الاستيراد</a></li>
+                <li class="nav-item"><a class="nav-link" href="#why">لماذا العميد</a></li>
+                <li class="nav-item"><a class="nav-link" href="#contact">تواصل معنا</a></li>
+            </ul>
+            <a href="{{ route('login') }}" class="btn btn-gold px-4"><i class="bi bi-person-circle"></i> دخول العملاء</a>
+        </div>
+    </div>
+</nav>
+
+<header class="hero" id="top">
+    <div class="container position-relative">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6 reveal">
+                @if (setting('hero_badge'))<span class="badge-gold"><i class="bi bi-stars"></i> {{ setting('hero_badge') }}</span>@endif
+                <h1>{!! preg_replace('/(أمريكا|عُمان)/u', '<span>$1</span>', e(setting('hero_title'))) !!}</h1>
+                <p class="lead">{{ setting('hero_subtitle') }}</p>
+                <div class="d-flex flex-wrap gap-2 mt-4">
+                    <a href="#contact" class="btn btn-gold btn-lg px-4">اطلب سيارتك الآن</a>
+                    <a href="{{ route('login') }}" class="btn btn-outline-light btn-lg px-4"><i class="bi bi-car-front"></i> تابع سيارتك</a>
+                </div>
+                <div class="hero-stats">
+                    @foreach ([1, 2, 3] as $n)
+                        @if (setting('stat_'.$n.'_value'))<div><b>{{ setting('stat_'.$n.'_value') }}</b><span>{{ setting('stat_'.$n.'_label') }}</span></div>@endif
+                    @endforeach
+                </div>
+            </div>
+            <div class="col-lg-6 reveal">
+                <div class="hero-visual">
+                    <div class="frame"><img src="{{ setting('media_hero') ? route('site.media', 'hero') : asset('assets/img/car.svg') }}" alt="سيارة مستوردة"></div>
+                    <div class="float-card fc-1"><i class="bi bi-geo-alt-fill"></i><div><b>تتبع مباشر</b><div class="text-muted small">من المزاد حتى التسليم</div></div></div>
+                    <div class="float-card fc-2"><i class="bi bi-shield-check"></i><div><b>دفعات موثقة</b><div class="text-muted small">إيصالات وكشوف حساب</div></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<section class="section" id="about">
+    <div class="container">
+        <div class="row align-items-center g-5">
+            <div class="col-lg-5 reveal">
+                <div class="about-img">
+                    @if (setting('media_about'))<img src="{{ route('site.media', 'about') }}" alt="{{ setting('about_title') }}">@else<img src="{{ asset('assets/img/car.svg') }}" alt="">@endif
+                </div>
+            </div>
+            <div class="col-lg-7 reveal">
+                <span class="text-gold fw-bold">{{ setting('office_name') }}</span>
+                <h2 class="text-navy my-2" style="font-size:2rem">{{ setting('about_title') }}</h2>
+                @foreach (preg_split('/\r?\n/', (string) setting('about_text')) as $p)
+                    @if (trim($p))<p class="text-muted fs-6" style="line-height:2">{{ $p }}</p>@endif
+                @endforeach
+                <div class="row g-3 mt-2">
+                    <div class="col-sm-6"><div class="d-flex gap-2 align-items-center"><i class="bi bi-check-circle-fill text-gold fs-5"></i> شراء من مزادات موثوقة</div></div>
+                    <div class="col-sm-6"><div class="d-flex gap-2 align-items-center"><i class="bi bi-check-circle-fill text-gold fs-5"></i> شحن آمن ومؤمن</div></div>
+                    <div class="col-sm-6"><div class="d-flex gap-2 align-items-center"><i class="bi bi-check-circle-fill text-gold fs-5"></i> تخليص جمركي كامل</div></div>
+                    <div class="col-sm-6"><div class="d-flex gap-2 align-items-center"><i class="bi bi-check-circle-fill text-gold fs-5"></i> حساب متابعة لكل عميل</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@if ($services)
+<section class="section bg-light" id="services">
+    <div class="container">
+        <div class="section-title reveal"><span class="eyebrow">خدماتنا</span><h2>كل ما تحتاجه لاستيراد سيارتك</h2><p>خدمة متكاملة من البحث عن السيارة وحتى تسليمها لك</p></div>
+        <div class="row g-4">
+            @foreach ($services as $s)
+                <div class="col-md-6 col-lg-4 reveal"><div class="svc"><div class="ic"><i class="bi {{ $s['icon'] }}"></i></div><h3>{{ $s['title'] }}</h3><p>{{ $s['text'] }}</p></div></div>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+@if ($steps)
+<section class="section" id="steps">
+    <div class="container">
+        <div class="section-title reveal"><span class="eyebrow">كيف نعمل</span><h2>خطوات استيراد سيارتك من أمريكا</h2><p>عملية واضحة وبسيطة، وتتابع كل خطوة من حسابك</p></div>
+        <div class="row g-4 steps">
+            @foreach ($steps as $i => $s)
+                <div class="col-sm-6 col-lg reveal"><div class="step"><div class="n">{{ $i + 1 }}</div><h3>{{ $s['title'] }}</h3><p>{{ $s['text'] }}</p></div></div>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+@if ($why)
+<section class="section why" id="why">
+    <div class="container">
+        <div class="section-title reveal"><span class="eyebrow text-gold">لماذا تختارنا</span><h2>لماذا تختار العميد؟</h2><p>نضع ثقتك وراحة بالك في المقام الأول</p></div>
+        <div class="row g-4">
+            @foreach ($why as $w)
+                <div class="col-md-6 reveal"><div class="why-item"><i class="bi {{ $w['icon'] }}"></i><div><h3>{{ $w['title'] }}</h3><p>{{ $w['text'] }}</p></div></div></div>
+            @endforeach
+        </div>
+    </div>
+</section>
+@endif
+
+<section class="section bg-light" id="contact">
+    <div class="container">
+        <div class="section-title reveal"><span class="eyebrow">تواصل معنا</span><h2>نسعد بخدمتك</h2><p>{{ setting('contact_text') }}</p></div>
+        <div class="contact-box reveal">
+            <div class="row g-0">
+                <div class="col-lg-5">
+                    <div class="contact-info">
+                        <h3 class="h5 mb-4">معلومات التواصل</h3>
+                        @if (setting('phone'))<div class="it"><i class="bi bi-telephone"></i><div><small>الهاتف</small><a href="tel:{{ preg_replace('/[^\d+]/', '', setting('phone')) }}" class="ltr" dir="ltr">{{ setting('phone') }}</a></div></div>@endif
+                        @if ($wa)<div class="it"><i class="bi bi-whatsapp"></i><div><small>واتساب</small><a href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener" class="ltr" dir="ltr">+{{ $wa }}</a></div></div>@endif
+                        @if (setting('email'))<div class="it"><i class="bi bi-envelope"></i><div><small>البريد الإلكتروني</small><a href="mailto:{{ setting('email') }}">{{ setting('email') }}</a></div></div>@endif
+                        @if (setting('address'))<div class="it"><i class="bi bi-geo-alt"></i><div><small>العنوان</small>{{ setting('address') }}</div></div>@endif
+                        @if (setting('working_hours'))<div class="it"><i class="bi bi-clock"></i><div><small>ساعات العمل</small>{{ setting('working_hours') }}</div></div>@endif
+                        @if (setting('map_url'))<a href="{{ setting('map_url') }}" target="_blank" rel="noopener" class="btn btn-outline-light btn-sm"><i class="bi bi-map"></i> الموقع على الخريطة</a>@endif
+                    </div>
+                </div>
+                <div class="col-lg-7 p-4 p-lg-5">
+                    @if (session('contact_ok'))<div class="alert alert-success"><i class="bi bi-check-circle-fill"></i> {{ session('contact_ok') }}</div>@endif
+                    @if ($errors->any())<div class="alert alert-danger small">{{ $errors->first() }}</div>@endif
+                    <form method="post" action="{{ route('contact') }}">
+                        @csrf
+                        <input type="text" name="website" class="d-none" tabindex="-1" autocomplete="off">
+                        <div class="row g-3">
+                            <div class="col-md-6"><label class="form-label required">الاسم</label><input name="name" value="{{ old('name') }}" class="form-control" required maxlength="120"></div>
+                            <div class="col-md-6"><label class="form-label required">رقم الهاتف</label><input name="phone" value="{{ old('phone') }}" class="form-control" required maxlength="30" inputmode="tel"></div>
+                            <div class="col-12"><label class="form-label">البريد الإلكتروني</label><input type="email" name="email" value="{{ old('email') }}" class="form-control" maxlength="150"></div>
+                            <div class="col-12"><label class="form-label required">رسالتك</label><textarea name="message" rows="4" class="form-control" required maxlength="2000" placeholder="مثال: أرغب في استيراد تويوتا كامري 2023 بميزانية...">{{ old('message') }}</textarea></div>
+                            <div class="col-12"><button class="btn btn-primary px-5 py-2">إرسال <i class="bi bi-send"></i></button></div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<footer class="s-footer">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <div class="d-flex align-items-center gap-2 mb-3">@include('partials.logo')<b class="text-white font-head">{{ setting('office_name') }}</b></div>
+                <p style="line-height:1.9">{{ setting('footer_text') }}</p>
+                <div class="social">
+                    @foreach (['facebook' => 'facebook', 'instagram' => 'instagram', 'x' => 'twitter-x', 'tiktok' => 'tiktok', 'snapchat' => 'snapchat', 'youtube' => 'youtube'] as $k => $icon)
+                        @if (setting($k))<a href="{{ setting($k) }}" target="_blank" rel="noopener" aria-label="{{ $k }}"><i class="bi bi-{{ $icon }}"></i></a>@endif
+                    @endforeach
+                    @if ($wa)<a href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener" aria-label="whatsapp"><i class="bi bi-whatsapp"></i></a>@endif
+                </div>
+            </div>
+            <div class="col-6 col-lg-3">
+                <h4>روابط سريعة</h4>
+                <ul class="list-unstyled d-grid gap-2"><li><a href="#about">من نحن</a></li><li><a href="#services">خدماتنا</a></li><li><a href="#steps">خطوات الاستيراد</a></li><li><a href="{{ route('login') }}">دخول العملاء</a></li></ul>
+            </div>
+            <div class="col-6 col-lg-4">
+                <h4>تواصل معنا</h4>
+                <ul class="list-unstyled d-grid gap-2">
+                    @if (setting('phone'))<li><i class="bi bi-telephone text-gold"></i> <span class="ltr" dir="ltr">{{ setting('phone') }}</span></li>@endif
+                    @if (setting('email'))<li><i class="bi bi-envelope text-gold"></i> {{ setting('email') }}</li>@endif
+                    @if (setting('address'))<li><i class="bi bi-geo-alt text-gold"></i> {{ setting('address') }}</li>@endif
+                </ul>
+            </div>
+        </div>
+        <hr class="border-secondary my-4">
+        <div class="text-center small">© {{ date('Y') }} {{ setting('office_name') }}. جميع الحقوق محفوظة.</div>
+    </div>
+</footer>
+@if ($wa)<a href="https://wa.me/{{ $wa }}" class="wa-float" target="_blank" rel="noopener" aria-label="واتساب"><i class="bi bi-whatsapp"></i></a>@endif
+<script src="{{ asset('assets/vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
+<script>
+    const nav = document.getElementById('siteNav');
+    const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 40);
+    onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
+    document.querySelectorAll('#navMenu .nav-link').forEach(a => a.addEventListener('click', () => bootstrap.Collapse.getInstance(document.getElementById('navMenu'))?.hide()));
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+</script>
+</body>
+</html>
