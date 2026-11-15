@@ -77,3 +77,11 @@ body.site { background: #fff; }
 .auth-admin { background: linear-gradient(150deg, var(--navy-900), var(--navy-700)); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.25rem; }
 .auth-admin .box { background: #fff; border-radius: 22px; padding: 2.2rem; width: 100%; max-width: 420px; box-shadow: 0 30px 80px rgba(0, 0, 0, .35); }
 @media (max-width: 991.98px) { .auth-wrap { grid-template-columns: 1fr; } .auth-side { display: none; } }
+
+/* عرض الصور المتغير في الواجهة */
+.hero-slides { position: relative; }
+.hero-slides img { position: absolute; inset: 0; opacity: 0; transform: scale(1.04); transition: opacity 1.1s cubic-bezier(.16,1,.3,1), transform 6s ease-out; }
+.hero-slides img.active { opacity: 1; transform: scale(1); }
+.slide-dots { position: absolute; bottom: 14px; left: 0; right: 0; display: flex; justify-content: center; gap: 6px; z-index: 2; }
+.slide-dots button { width: 8px; height: 8px; border-radius: 4px; border: 0; padding: 0; background: rgba(255, 255, 255, .5); transition: width .3s, background .3s; }
+.slide-dots button.active { width: 24px; background: var(--gold); }

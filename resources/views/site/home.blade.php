@@ -47,7 +47,16 @@
             </div>
             <div class="col-lg-6 reveal">
                 <div class="hero-visual">
-                    <div class="frame"><img src="{{ setting('media_hero') ? route('site.media', 'hero') : asset('assets/img/car.svg') }}" alt="سيارة مستوردة"></div>
+                    <div class="frame hero-slides" data-interval="{{ (int) setting('hero_slide_seconds', 6) * 1000 }}">
+                        @forelse ($slides as $i => $p)
+                            <img src="{{ route('site.slide', $i) }}" alt="سيارة مستوردة {{ $i + 1 }}" class="{{ $i === 0 ? 'active' : '' }}" @if ($i > 0) loading="lazy" @endif>
+                        @empty
+                            <img src="{{ setting('media_hero') ? route('site.media', 'hero') : asset('assets/img/car.svg') }}" alt="سيارة مستوردة" class="active">
+                        @endforelse
+                        @if (count($slides) > 1)
+                            <div class="slide-dots">@foreach ($slides as $i => $p)<button type="button" class="{{ $i === 0 ? 'active' : '' }}" aria-label="الصورة {{ $i + 1 }}"></button>@endforeach</div>
+                        @endif
+                    </div>
                     <div class="float-card fc-1"><i class="bi bi-geo-alt-fill"></i><div><b>تتبع مباشر</b><div class="text-muted small">من المزاد حتى التسليم</div></div></div>
                     <div class="float-card fc-2"><i class="bi bi-shield-check"></i><div><b>دفعات موثقة</b><div class="text-muted small">إيصالات وكشوف حساب</div></div></div>
                 </div>
@@ -192,6 +201,18 @@
     const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 40);
     onScroll(); window.addEventListener('scroll', onScroll, { passive: true });
     document.querySelectorAll('#navMenu .nav-link').forEach(a => a.addEventListener('click', () => bootstrap.Collapse.getInstance(document.getElementById('navMenu'))?.hide()));
+    (function () {
+        const box = document.querySelector('.hero-slides');
+        const imgs = box ? [...box.querySelectorAll('img')] : [];
+        if (imgs.length < 2) return;
+        const dots = [...box.querySelectorAll('.slide-dots button')];
+        let i = 0, t;
+        const go = n => { imgs[i].classList.remove('active'); dots[i]?.classList.remove('active'); i = (n + imgs.length) % imgs.length; imgs[i].classList.add('active'); dots[i]?.classList.add('active'); };
+        const start = () => { clearInterval(t); if (!matchMedia('(prefers-reduced-motion: reduce)').matches) t = setInterval(() => go(i + 1), +box.dataset.interval || 6000); };
+        dots.forEach((d, k) => d.addEventListener('click', () => { go(k); start(); }));
+        box.addEventListener('mouseenter', () => clearInterval(t)); box.addEventListener('mouseleave', start);
+        start();
+    })();
     const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
     document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 </script>

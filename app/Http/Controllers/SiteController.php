@@ -15,6 +15,7 @@ class SiteController extends Controller
             'services' => self::lines(setting('home_services')),
             'steps' => self::lines(setting('home_steps')),
             'why' => self::lines(setting('home_why')),
+            'slides' => self::slides(),
         ]);
     }
 
@@ -48,6 +49,22 @@ class SiteController extends Controller
         Notifier::staff('inquiry', 'استفسار جديد من الموقع', $inq->name.' — '.$inq->phone, route('admin.inquiries.index'), 'bi-envelope', 'inquiries.view');
 
         return redirect(route('home').'#contact')->with('contact_ok', 'تم استلام رسالتك بنجاح، وسنتواصل معك قريبًا.');
+    }
+
+    /** صور العرض المتغير في الصفحة الرئيسية (مسارات محفوظة في الإعدادات) */
+    public static function slides(): array
+    {
+        $list = json_decode((string) setting('hero_slides', '[]'), true);
+
+        return is_array($list) ? array_values(array_filter($list, 'is_string')) : [];
+    }
+
+    public function slide(int $index)
+    {
+        $path = self::slides()[$index] ?? null;
+        abort_unless($path, 404);
+
+        return FileStore::response($path);
     }
 
     public function media(string $key)

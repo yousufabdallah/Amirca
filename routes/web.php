@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [SiteController::class, 'home'])->name('home');
 Route::post('/contact', [SiteController::class, 'contact'])->middleware('throttle:5,10')->name('contact');
 Route::get('/media/site/{key}', [SiteController::class, 'media'])->whereIn('key', ['logo', 'hero', 'about'])->name('site.media');
+Route::get('/media/slide/{index}', [SiteController::class, 'slide'])->whereNumber('index')->name('site.slide');
 
 /*
 |--------------------------------------------------------------------------

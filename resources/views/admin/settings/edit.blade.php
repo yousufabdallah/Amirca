@@ -36,8 +36,28 @@
                 <div class="col-md-4"><label class="form-label">الشارة</label><input name="hero_badge" value="{{ $v('hero_badge') }}" class="form-control"></div>
                 <div class="col-md-8"><label class="form-label">العنوان التسويقي</label><input name="hero_title" value="{{ $v('hero_title') }}" class="form-control"></div>
                 <div class="col-12"><label class="form-label">الوصف</label><textarea name="hero_subtitle" rows="2" class="form-control">{{ $v('hero_subtitle') }}</textarea></div>
-                <div class="col-md-6"><label class="form-label">صورة السيارة الرئيسية</label><input type="file" name="hero" accept="image/png,image/jpeg,image/webp" class="form-control">
-                    @if (! empty($s['media_hero']))<div class="d-flex align-items-center gap-2 mt-2"><img src="{{ route('site.media', 'hero') }}" style="height:60px" class="rounded" alt=""><label class="small"><input type="checkbox" name="remove_hero" value="1"> حذف</label></div>@endif</div>
+                <div class="col-12">
+                    <label class="form-label">صور العرض المتغير في الصفحة الرئيسية</label>
+                    @php($slides = \App\Http\Controllers\SiteController::slides())
+                    @if ($slides)
+                        <div class="img-grid mb-2" id="slideGrid">
+                            @foreach ($slides as $i => $p)
+                                <div class="img-tile" data-i="{{ $i }}" style="cursor:grab">
+                                    <img src="{{ route('site.slide', $i) }}" alt="صورة {{ $i + 1 }}">
+                                    @if ($i === 0)<span class="tag">الأولى</span>@endif
+                                    <div class="tools"><span class="badge bg-dark">{{ $i + 1 }}</span><label class="btn btn-danger btn-sm mb-0" title="حذف عند الحفظ"><input type="checkbox" name="remove_slides[]" value="{{ $i }}" class="form-check-input m-0 me-1"> حذف</label></div>
+                                </div>
+                            @endforeach
+                        </div>
+                        <input type="hidden" name="slide_order" id="slideOrder">
+                        <div class="form-text mb-2">اسحب الصور لترتيبها، وحدّد «حذف» لإزالة صورة ثم اضغط حفظ.</div>
+                    @endif
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-8"><input type="file" name="slides[]" multiple accept="image/png,image/jpeg,image/webp" class="form-control" data-preview="pvSlides"><div id="pvSlides" class="mt-2"></div></div>
+                        <div class="col-md-4"><label class="form-label small">مدة عرض كل صورة (ثوانٍ)</label><input type="number" name="hero_slide_seconds" min="3" max="20" value="{{ $v('hero_slide_seconds', '6') }}" class="form-control"></div>
+                    </div>
+                    <div class="form-text">يمكن رفع عدة صور معًا (JPG / PNG / WebP حتى 8MB). يُفضَّل صور أفقية بنسبة 4:3. إن لم تُرفع صور يظهر الرسم الافتراضي.</div>
+                </div>
                 @foreach ([1, 2, 3] as $n)
                     <div class="col-md-2 col-6"><label class="form-label">إحصائية {{ $n }}</label><input name="stat_{{ $n }}_value" value="{{ $v('stat_'.$n.'_value') }}" class="form-control" placeholder="+500"></div>
                     <div class="col-md-2 col-6"><label class="form-label">الوصف</label><input name="stat_{{ $n }}_label" value="{{ $v('stat_'.$n.'_label') }}" class="form-control"></div>
@@ -78,4 +98,13 @@
     </div>
     <div class="position-sticky bottom-0 bg-white p-3 border rounded-3 shadow-sm"><button class="btn btn-primary px-5"><i class="bi bi-check2"></i> حفظ الإعدادات</button></div>
 </form>
+@push('scripts')
+<script>
+const sg = document.getElementById('slideGrid');
+if (sg) {
+    const save = () => document.getElementById('slideOrder').value = [...sg.children].map(c => c.dataset.i).join(',');
+    Sortable.create(sg, { animation: 160, onEnd: save }); save();
+}
+</script>
+@endpush
 @endsection

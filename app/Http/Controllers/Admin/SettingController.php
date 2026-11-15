@@ -38,6 +38,10 @@ class SettingController extends Controller
             'logo' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:4096',
             'hero' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
             'about' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'slides' => 'nullable|array|max:20',
+            'slides.*' => 'file|mimes:jpg,jpeg,png,webp|max:8192',
+            'remove_slides' => 'nullable|array',
+            'slide_order' => 'nullable|string|max:500',
             '*' => 'nullable',
         ], [], ['office_name' => 'اسم المكتب', 'currency' => 'العملة']);
 
@@ -58,6 +62,34 @@ class SettingController extends Controller
                 $values['media_'.$img] = null;
             }
         }
+        // صور العرض المتغير: حذف، ترتيب، ثم إضافة الجديد
+        $slides = \App\Http\Controllers\SiteController::slides();
+        $remove = array_map('intval', (array) $request->input('remove_slides', []));
+        $kept = [];
+        foreach ($slides as $i => $p) {
+            if (in_array($i, $remove, true)) {
+                FileStore::delete($p);
+            } else {
+                $kept[$i] = $p;
+            }
+        }
+        if ($order = $request->input('slide_order')) {
+            $sorted = [];
+            foreach (explode(',', $order) as $i) {
+                if (isset($kept[(int) $i])) {
+                    $sorted[] = $kept[(int) $i];
+                    unset($kept[(int) $i]);
+                }
+            }
+            $kept = array_merge($sorted, array_values($kept));
+        }
+        $kept = array_values($kept);
+        foreach ((array) $request->file('slides', []) as $file) {
+            $kept[] = FileStore::storeImage($file, 'site/slides');
+        }
+        $values['hero_slides'] = json_encode(array_slice($kept, 0, 20));
+        $values['hero_slide_seconds'] = (string) max(3, min(20, (int) $request->input('hero_slide_seconds', 6)));
+
         Setting::put($values);
         AuditLog::record('settings.update', 'تحديث إعدادات النظام والموقع');
 
