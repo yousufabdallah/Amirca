@@ -49,7 +49,7 @@
                 <div class="hero-visual">
                     <div class="frame hero-slides" data-interval="{{ (int) setting('hero_slide_seconds', 6) * 1000 }}">
                         @forelse ($slides as $i => $p)
-                            <img src="{{ route('site.slide', $i) }}" alt="سيارة مستوردة {{ $i + 1 }}" class="{{ $i === 0 ? 'active' : '' }}" @if ($i > 0) loading="lazy" @endif>
+                            <img src="{{ route('site.slide', $i) }}" alt="سيارة مستوردة {{ $i + 1 }}" class="{{ $i === 0 ? 'active' : '' }}">
                         @empty
                             <img src="{{ setting('media_hero') ? route('site.media', 'hero') : asset('assets/img/car.svg') }}" alt="سيارة مستوردة" class="active">
                         @endforelse
@@ -208,9 +208,8 @@
         const dots = [...box.querySelectorAll('.slide-dots button')];
         let i = 0, t;
         const go = n => { imgs[i].classList.remove('active'); dots[i]?.classList.remove('active'); i = (n + imgs.length) % imgs.length; imgs[i].classList.add('active'); dots[i]?.classList.add('active'); };
-        const start = () => { clearInterval(t); if (!matchMedia('(prefers-reduced-motion: reduce)').matches) t = setInterval(() => go(i + 1), +box.dataset.interval || 6000); };
+        const start = () => { clearInterval(t); t = setInterval(() => go(i + 1), +box.dataset.interval || 6000); };
         dots.forEach((d, k) => d.addEventListener('click', () => { go(k); start(); }));
-        box.addEventListener('mouseenter', () => clearInterval(t)); box.addEventListener('mouseleave', start);
         start();
     })();
     const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } }), { threshold: .12 });
