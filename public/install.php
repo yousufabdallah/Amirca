@@ -79,8 +79,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // إزالة كلمة مرور المدير من .env بعد إنشاء الحساب
                 $env = preg_replace('/^ADMIN_PASSWORD=.*$/m', 'ADMIN_PASSWORD=', file_get_contents($envFile));
                 file_put_contents($envFile, $env);
-                $kernel->call('config:cache');
-                $kernel->call('route:cache');
                 $kernel->call('view:cache');
                 @unlink($root.'/storage/app/.installing');
                 $done = true;

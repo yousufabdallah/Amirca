@@ -15,6 +15,24 @@ if (! file_exists(__DIR__.'/../.env')) {
     exit;
 }
 
+// بعد كل تحديث عبر Git: حذف ملفات الكاش القديمة (المسارات والإعدادات) تلقائيًا
+(function () {
+    $root = dirname(__DIR__);
+    $caches = glob($root.'/bootstrap/cache/{routes-v7,config}.php', GLOB_BRACE) ?: [];
+    if (! $caches) {
+        return;
+    }
+    $latest = 0;
+    foreach (array_merge([$root.'/routes/web.php', $root.'/bootstrap/app.php', $root.'/composer.lock', $root.'/.env'], glob($root.'/config/*.php') ?: []) as $f) {
+        $latest = max($latest, (int) @filemtime($f));
+    }
+    foreach ($caches as $c) {
+        if ((int) @filemtime($c) < $latest) {
+            @unlink($c);
+        }
+    }
+})();
+
 // Register the Composer autoloader...
 require __DIR__.'/../vendor/autoload.php';
 
