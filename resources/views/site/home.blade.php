@@ -59,14 +59,13 @@
 <section class="section" id="about">
     <div class="container">
         <div class="row align-items-center g-5">
-            <div class="col-lg-5 reveal">
+            <div class="col-lg-5">
                 <div class="about-img">
                     @if (setting('media_about'))<img src="{{ route('site.media', 'about') }}" alt="{{ setting('about_title') }}">@else<img src="{{ asset('assets/img/car.svg') }}" alt="">@endif
                 </div>
             </div>
-            <div class="col-lg-7 reveal">
-                <span class="text-gold fw-bold">{{ setting('office_name') }}</span>
-                <h2 class="text-navy my-2" style="font-size:2rem">{{ setting('about_title') }}</h2>
+            <div class="col-lg-7">
+                                <h2 class="text-navy my-2" style="font-size:2rem">{{ setting('about_title') }}</h2>
                 @foreach (preg_split('/\r?\n/', (string) setting('about_text')) as $p)
                     @if (trim($p))<p class="text-muted fs-6" style="line-height:2">{{ $p }}</p>@endif
                 @endforeach
@@ -84,10 +83,10 @@
 @if ($services)
 <section class="section bg-light" id="services">
     <div class="container">
-        <div class="section-title reveal"><span class="eyebrow">خدماتنا</span><h2>كل ما تحتاجه لاستيراد سيارتك</h2><p>خدمة متكاملة من البحث عن السيارة وحتى تسليمها لك</p></div>
+        <div class="section-title"><h2>كل ما تحتاجه لاستيراد سيارتك</h2><p>خدمة متكاملة من البحث عن السيارة وحتى تسليمها لك</p></div>
         <div class="row g-4">
             @foreach ($services as $s)
-                <div class="col-md-6 col-lg-4 reveal"><div class="svc"><div class="ic"><i class="bi {{ $s['icon'] }}"></i></div><h3>{{ $s['title'] }}</h3><p>{{ $s['text'] }}</p></div></div>
+                <div class="col-md-6 col-lg-4"><div class="svc"><div class="ic"><i class="bi {{ $s['icon'] }}"></i></div><h3>{{ $s['title'] }}</h3><p>{{ $s['text'] }}</p></div></div>
             @endforeach
         </div>
     </div>
@@ -97,10 +96,10 @@
 @if ($steps)
 <section class="section" id="steps">
     <div class="container">
-        <div class="section-title reveal"><span class="eyebrow">كيف نعمل</span><h2>خطوات استيراد سيارتك من أمريكا</h2><p>عملية واضحة وبسيطة، وتتابع كل خطوة من حسابك</p></div>
+        <div class="section-title"><h2>خطوات استيراد سيارتك من أمريكا</h2><p>عملية واضحة وبسيطة، وتتابع كل خطوة من حسابك</p></div>
         <div class="row g-4 steps">
             @foreach ($steps as $i => $s)
-                <div class="col-sm-6 col-lg reveal"><div class="step"><div class="n">{{ $i + 1 }}</div><h3>{{ $s['title'] }}</h3><p>{{ $s['text'] }}</p></div></div>
+                <div class="col-sm-6 col-lg"><div class="step"><div class="n">{{ $i + 1 }}</div><h3>{{ $s['title'] }}</h3><p>{{ $s['text'] }}</p></div></div>
             @endforeach
         </div>
     </div>
@@ -110,10 +109,10 @@
 @if ($why)
 <section class="section why" id="why">
     <div class="container">
-        <div class="section-title reveal"><span class="eyebrow text-gold">لماذا تختارنا</span><h2>لماذا تختار العميد؟</h2><p>نضع ثقتك وراحة بالك في المقام الأول</p></div>
+        <div class="section-title"><h2>لماذا تختار العميد؟</h2><p>نضع ثقتك وراحة بالك في المقام الأول</p></div>
         <div class="row g-4">
             @foreach ($why as $w)
-                <div class="col-md-6 reveal"><div class="why-item"><i class="bi {{ $w['icon'] }}"></i><div><h3>{{ $w['title'] }}</h3><p>{{ $w['text'] }}</p></div></div></div>
+                <div class="col-md-6"><div class="why-item"><i class="bi {{ $w['icon'] }}"></i><div><h3>{{ $w['title'] }}</h3><p>{{ $w['text'] }}</p></div></div></div>
             @endforeach
         </div>
     </div>
@@ -122,8 +121,8 @@
 
 <section class="section bg-light" id="contact">
     <div class="container">
-        <div class="section-title reveal"><span class="eyebrow">تواصل معنا</span><h2>نسعد بخدمتك</h2><p>{{ setting('contact_text') }}</p></div>
-        <div class="contact-box reveal">
+        <div class="section-title"><h2>نسعد بخدمتك</h2><p>{{ setting('contact_text') }}</p></div>
+        <div class="contact-box">
             <div class="row g-0">
                 <div class="col-lg-5">
                     <div class="contact-info">

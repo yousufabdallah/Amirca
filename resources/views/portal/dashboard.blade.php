@@ -2,7 +2,7 @@
 @section('title', 'الرئيسية')
 @section('hero')
     <div class="d-flex flex-wrap justify-content-between align-items-end gap-3">
-        <div><h1>مرحبًا بك، {{ $client->full_name }} 👋</h1><span class="chip"><i class="bi bi-person-badge"></i> رقم العميل: <b>{{ $client->client_no }}</b></span></div>
+        <div><h1>مرحبًا بك، {{ $client->full_name }}</h1><span class="chip"><i class="bi bi-person-badge"></i> رقم العميل: <b>{{ $client->client_no }}</b></span></div>
         <a href="{{ route('portal.statement') }}" target="_blank" class="btn btn-gold"><i class="bi bi-file-earmark-text"></i> كشف الحساب</a>
     </div>
 @endsection

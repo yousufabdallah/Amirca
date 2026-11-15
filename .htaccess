@@ -1,7 +1,7 @@
 # Hostinger: توجيه الطلبات إلى مجلد public عند رفع المشروع كاملًا داخل public_html
 <IfModule mod_rewrite.c>
     RewriteEngine On
-    RewriteRule ^(\.env|composer\.(json|lock)|artisan|storage/|vendor/|database/|app/|config/|routes/|resources/|bootstrap/|tests/) - [F,L]
+    RewriteRule ^(\.env|composer\.(json|lock)|artisan|storage/|vendor/|database/|app/|config/|routes/|resources/|bootstrap/|tests/|\.claude/|\.git/) - [F,L]
     RewriteCond %{REQUEST_URI} !^/public/
     RewriteRule ^(.*)$ public/$1 [L]
 </IfModule>

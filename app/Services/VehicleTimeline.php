@@ -51,7 +51,7 @@ class VehicleTimeline
             $client = $vehicle->client;
             $purl = route('portal.vehicles.show', $vehicle);
             if ($new->stage_group === 'arrived') {
-                Notifier::client($client, 'vehicle.arrived', 'وصلت سيارتك إلى ميناء عُمان 🎉', $vehicle->title().' — '.$new->name, $purl, 'bi-geo-alt-fill');
+                Notifier::client($client, 'vehicle.arrived', 'وصلت سيارتك إلى ميناء عُمان', $vehicle->title().' — '.$new->name, $purl, 'bi-geo-alt-fill');
             } else {
                 Notifier::client($client, 'vehicle.status', 'تم تحديث حالة سيارتك', $vehicle->title().': '.$new->name.($note ? ' — '.$note : ''), $purl, 'bi-arrow-repeat');
             }

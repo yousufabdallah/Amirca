@@ -77,3 +77,16 @@ a { text-decoration: none; }
 .timeline li::before { content: ''; position: absolute; right: -1.22rem; top: .35rem; width: .8rem; height: .8rem; border-radius: 50%; background: #fff; border: 3px solid var(--dot, var(--navy-600)); }
 .timeline .t-time { font-size: .76rem; color: var(--gray-500); }
 @media print { .no-print { display: none !important; } body { background: #fff; } }
+
+/* أسطح المتصفح من نفس الهوية */
+::selection { background: rgba(200, 162, 74, .32); color: var(--navy-900); }
+html { accent-color: var(--navy-700); caret-color: var(--gold-600); scrollbar-color: #b8c2d4 transparent; }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #c3cbd9; border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.btn:focus-visible, .form-control:focus-visible, .form-select:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; box-shadow: none; }
+a { text-underline-offset: .2em; }
+.table td, .stat-card .val, .kpi .v, .big { font-variant-numeric: tabular-nums; }
+h1, h2, h3 { text-wrap: balance; }
+p { text-wrap: pretty; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } .reveal { opacity: 1; transform: none; } }

@@ -22,7 +22,7 @@
                     </div>
                     @if ($imgs->count() > 1)<div class="gallery-thumbs">@foreach ($imgs as $k => $src)<img src="{{ $src }}" class="{{ $k === 0 ? 'active' : '' }}" alt="" loading="lazy">@endforeach</div>@endif
                 </div>
-                <div class="lightbox" id="lightbox"><img src="" alt=""><button class="lb-btn lb-close" aria-label="إغلاق"><i class="bi bi-x-lg"></i></button><button class="lb-btn lb-prev"><i class="bi bi-chevron-right"></i></button><button class="lb-btn lb-next"><i class="bi bi-chevron-left"></i></button><span class="lb-count" dir="ltr"></span></div>
+                <div class="lightbox" id="lightbox" role="dialog" aria-label="عرض الصور"><img src="{{ $imgs[0] }}" alt="صورة السيارة"><button class="lb-btn lb-close" aria-label="إغلاق"><i class="bi bi-x-lg"></i></button><button class="lb-btn lb-prev"><i class="bi bi-chevron-right"></i></button><button class="lb-btn lb-next"><i class="bi bi-chevron-left"></i></button><span class="lb-count" dir="ltr"></span></div>
             @else
                 <div class="gallery-main d-flex align-items-center justify-content-center" style="cursor:default;background:linear-gradient(135deg,#e7ecf5,#f8fafc)"><div class="text-center text-muted"><i class="bi bi-camera" style="font-size:3rem"></i><div>ستتم إضافة صور السيارة قريبًا</div></div></div>
             @endif

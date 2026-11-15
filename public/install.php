@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head><body><div class="box">
 <div class="text-center mb-4"><span class="logo">ع</span><h1 class="h4 mt-2">تثبيت نظام العميد للاستيراد والتصدير</h1></div>
 <?php if ($done): ?>
-    <div class="alert alert-success"><b>تم التثبيت بنجاح 🎉</b><br>تم إنشاء الجداول وحساب المدير.</div>
+    <div class="alert alert-success"><b>تم التثبيت بنجاح</b><br>تم إنشاء الجداول وحساب المدير.</div>
     <a href="<?= h($appUrl) ?>/admin/login" class="btn btn-primary w-100 mb-2">الدخول إلى لوحة الإدارة</a>
     <a href="<?= h($appUrl) ?>/" class="btn btn-light w-100">الموقع الرئيسي</a>
 <?php else: ?>
