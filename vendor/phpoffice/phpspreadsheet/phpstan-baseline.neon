@@ -1,0 +1,7 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Parameter \#1 \$array of function array_multisort expects array, mixed given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/PhpSpreadsheet/Calculation/LookupRef/Sort.php

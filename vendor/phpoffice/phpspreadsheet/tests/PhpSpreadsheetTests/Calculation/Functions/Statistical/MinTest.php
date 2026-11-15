@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace PhpOffice\PhpSpreadsheetTests\Calculation\Functions\Statistical;
+
+class MinTest extends AllSetupTeardown
+{
+    #[\PHPUnit\Framework\Attributes\DataProvider('providerMIN')]
+    public function testMIN(mixed $expectedResult, mixed ...$args): void
+    {
+        $this->runTestCaseReference('MIN', $expectedResult, ...$args);
+    }
+
+    public static function providerMIN(): array
+    {
+        return require 'tests/data/Calculation/Statistical/MIN.php';
+    }
+
+    #[\PHPUnit\Framework\Attributes\DataProvider('providerMINLiteralArguments')]
+    public function testMINLiteralArguments(mixed $expectedResult, mixed ...$args): void
+    {
+        $this->runTestCaseDirect('MIN', $expectedResult, ...$args);
+    }
+
+    public static function providerMINLiteralArguments(): array
+    {
+        return require 'tests/data/Calculation/Statistical/MINLiteralArguments.php';
+    }
+}

@@ -9,6 +9,12 @@ if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php'))
     require $maintenance;
 }
 
+// أول تشغيل على الاستضافة: لا يوجد .env بعد → معالج التثبيت
+if (! file_exists(__DIR__.'/../.env')) {
+    header('Location: '.rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/\\').'/install.php');
+    exit;
+}
+
 // Register the Composer autoloader...
 require __DIR__.'/../vendor/autoload.php';
 
