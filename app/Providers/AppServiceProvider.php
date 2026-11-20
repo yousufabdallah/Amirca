@@ -48,11 +48,19 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole() || $this->app->runningUnitTests() || ! file_exists(base_path('.env'))) {
             return;
         }
-        $files = glob(database_path('migrations/*.php')) ?: [];
-        $signature = md5(implode('|', array_map('basename', $files)));
-        $marker = storage_path('framework/migrated-'.$signature);
-        if (file_exists($marker)) {
+        // المقارنة مع جدول migrations نفسه (لا نعتمد على ملفات علامة قد تبقى بعد النشر)
+        try {
+            $files = array_map(fn ($f) => basename($f, '.php'), glob(database_path('migrations/*.php')) ?: []);
+            $ran = \Illuminate\Support\Facades\DB::table('migrations')->pluck('migration')->all();
+            if (! array_diff($files, $ran)) {
+                return;
+            }
+        } catch (\Throwable) {
             return;
+        }
+        $retry = storage_path('framework/migrate-retry');
+        if (file_exists($retry) && time() - filemtime($retry) < 60) {
+            return; // لا تعيد المحاولة الفاشلة في كل طلب
         }
         $lock = @fopen(storage_path('framework/migrate.lock'), 'c');
         if (! $lock || ! flock($lock, LOCK_EX | LOCK_NB)) {
@@ -60,11 +68,9 @@ class AppServiceProvider extends ServiceProvider
         }
         try {
             \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-            foreach (glob(storage_path('framework/migrated-*')) ?: [] as $old) {
-                @unlink($old);
-            }
-            @file_put_contents($marker, date('c'));
+            @unlink($retry);
         } catch (\Throwable $e) {
+            @touch($retry);
             report($e);
         } finally {
             flock($lock, LOCK_UN);
