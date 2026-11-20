@@ -32,7 +32,7 @@ class ArrivalAlerts
             $days = $v->daysToEta();
             $url = route('admin.vehicles.show', $v);
             if ($days < 0) {
-                Notifier::staff('arrival.late', 'سيارة تجاوزت موعد الوصول', $v->file_no.' — '.$v->title().' (العميل: '.$v->client->full_name.') متأخرة '.abs($days).' يوم',
+                Notifier::staff('arrival.late', 'سيارة تجاوزت موعد الوصول', $v->file_no.' — '.$v->title().' (العميل: '.$v->ownerName().') متأخرة '.abs($days).' يوم',
                     $url, 'bi-exclamation-triangle', 'vehicles.view', 'late:'.$v->id.':'.$v->eta->toDateString());
             } else {
                 Notifier::staff('arrival.soon', 'اقتراب موعد وصول سيارة', $v->file_no.' — '.$v->title().' متوقع وصولها '.($days === 0 ? 'اليوم' : 'خلال '.$days.' يوم'),

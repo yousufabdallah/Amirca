@@ -28,9 +28,9 @@ class Notifier
     }
 
     /** إشعار للعميل إذا كان لديه حساب دخول */
-    public static function client(Client $client, string $type, string $title, ?string $body = null, ?string $url = null, string $icon = 'bi-bell'): void
+    public static function client(?Client $client, string $type, string $title, ?string $body = null, ?string $url = null, string $icon = 'bi-bell'): void
     {
-        if (! $client->user_id) {
+        if (! $client || ! $client->user_id) {
             return;
         }
         AppNotification::create(compact('type', 'title', 'body', 'url', 'icon') + ['user_id' => $client->user_id]);

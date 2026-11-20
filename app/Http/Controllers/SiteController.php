@@ -16,6 +16,8 @@ class SiteController extends Controller
             'steps' => self::lines(setting('home_steps')),
             'why' => self::lines(setting('home_why')),
             'slides' => self::slides(),
+            'showroom' => \App\Models\Vehicle::publicListed()->with(['status', 'primaryImage'])->latest('id')->limit(6)->get(),
+            'showroomTotal' => \App\Models\Vehicle::publicListed()->count(),
         ]);
     }
 

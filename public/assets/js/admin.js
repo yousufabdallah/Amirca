@@ -65,6 +65,7 @@
   // اختيار العميل بالبحث
   document.querySelectorAll('select[data-client-select]').forEach(sel => {
     const ts = new TomSelect(sel, {
+      plugins: sel.dataset.clearable !== undefined ? ['clear_button'] : [], allowEmptyOption: true,
       valueField: 'id', labelField: 'text', searchField: ['text'], maxOptions: 20, preload: 'focus', placeholder: 'ابحث باسم العميل أو رقم الهاتف أو رقم العميل...',
       load: (q, cb) => request(sel.dataset.url + '?q=' + encodeURIComponent(q)).then(cb).catch(() => cb()),
       render: { no_results: () => '<div class="no-results p-2">لا يوجد عميل مطابق</div>' },

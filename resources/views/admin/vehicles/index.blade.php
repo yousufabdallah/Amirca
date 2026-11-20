@@ -7,7 +7,7 @@
     @can('vehicles.manage')<a href="{{ route('admin.vehicles.create') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> إضافة سيارة</a>@endcan
 </div>
 <ul class="nav nav-tabs-soft mb-3">
-    @foreach (['active' => ['قيد التنفيذ', 'bi-hourglass-split'], 'delivered' => ['المكتملة (تم التسليم)', 'bi-patch-check'], 'late' => ['المتأخرة', 'bi-exclamation-triangle'], 'archived' => ['الأرشيف', 'bi-archive'], 'all' => ['الكل', 'bi-list']] as $k => [$l, $i])
+    @foreach (['active' => ['قيد التنفيذ', 'bi-hourglass-split'], 'delivered' => ['المكتملة (تم التسليم)', 'bi-patch-check'], 'late' => ['المتأخرة', 'bi-exclamation-triangle'], 'office' => ['سيارات المكتب (المعرض)', 'bi-shop'], 'archived' => ['الأرشيف', 'bi-archive'], 'all' => ['الكل', 'bi-list']] as $k => [$l, $i])
         <li><a class="nav-link {{ $tab === $k ? 'active' : '' }}" href="{{ route('admin.vehicles.index', array_merge(request()->except('page'), ['tab' => $k])) }}"><i class="bi {{ $i }}"></i> {{ $l }} @isset($counts[$k])<span class="badge rounded-pill {{ $tab === $k ? 'bg-light text-dark' : 'bg-secondary-subtle text-secondary' }}">{{ $counts[$k] }}</span>@endisset</a></li>
     @endforeach
 </ul>
@@ -32,7 +32,7 @@
                 <tr>
                     <td style="width:76px"><a href="{{ route('admin.vehicles.show', $v) }}">@if ($v->primaryImage)<img src="{{ route('admin.images.show', $v->primaryImage) }}" class="thumb" alt="" loading="lazy">@else<span class="thumb-ph"><i class="bi bi-car-front"></i></span>@endif</a></td>
                     <td><a href="{{ route('admin.vehicles.show', $v) }}" class="fw-bold text-nowrap">{{ $v->file_no }}</a></td>
-                    <td class="small"><a href="{{ route('admin.clients.show', $v->client_id) }}" class="text-dark">{{ $v->client->full_name }}</a><div class="text-muted ltr" dir="ltr">{{ $v->client->phone }}</div></td>
+                    <td class="small">@include('admin.partials.owner', ['v' => $v, 'phone' => true])</td>
                     <td><b>{{ $v->make }} {{ $v->model }}</b><div class="small text-muted">{{ $v->trim }}</div></td>
                     <td>{{ $v->year ?: '—' }}</td>
                     <td class="small" dir="ltr">{{ $v->vin ?: '—' }}</td>
@@ -46,7 +46,7 @@
                                 <li><a class="dropdown-item" href="{{ route('admin.vehicles.show', $v) }}"><i class="bi bi-eye"></i> عرض التفاصيل</a></li>
                                 @can('vehicles.manage')<li><a class="dropdown-item" href="{{ route('admin.vehicles.edit', $v) }}"><i class="bi bi-pencil"></i> تعديل</a></li>@endcan
                                 @can('vehicles.status')<li><a class="dropdown-item" href="{{ route('admin.vehicles.show', $v) }}#status"><i class="bi bi-arrow-repeat"></i> تحديث الحالة</a></li>@endcan
-                                @can('payments.manage')<li><a class="dropdown-item" href="{{ route('admin.payments.create', ['vehicle_id' => $v->id]) }}"><i class="bi bi-cash"></i> إضافة دفعة</a></li>@endcan
+                                @if ($v->client) @can('payments.manage')<li><a class="dropdown-item" href="{{ route('admin.payments.create', ['vehicle_id' => $v->id]) }}"><i class="bi bi-cash"></i> إضافة دفعة</a></li>@endcan @endif
                                 @can('media.manage')<li><a class="dropdown-item" href="{{ route('admin.vehicles.show', $v) }}#images"><i class="bi bi-images"></i> رفع الصور</a></li>@endcan
                                 <li><a class="dropdown-item" target="_blank" href="{{ route('admin.vehicles.print', $v) }}"><i class="bi bi-printer"></i> طباعة بطاقة السيارة</a></li>
                                 @can('vehicles.manage')<li><hr class="dropdown-divider"></li><li>

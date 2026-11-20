@@ -35,6 +35,7 @@ class VehicleController extends Controller
             ->when($tab === 'active', fn ($w) => $w->whereNull('archived_at')->whereNotIn('status_id', $delivered ?: [0]))
             ->when($tab === 'delivered', fn ($w) => $w->whereNull('archived_at')->whereIn('status_id', $delivered ?: [0]))
             ->when($tab === 'archived', fn ($w) => $w->whereNotNull('archived_at'))
+            ->when($tab === 'office', fn ($w) => $w->whereNull('archived_at')->whereNull('client_id'))
             ->when($tab === 'late', fn ($w) => $w->whereNull('archived_at')->whereNotNull('eta')->whereNull('arrived_at')
                 ->whereNotIn('status_id', $arrived ?: [0])->where('eta', '<', now()->toDateString()))
             ->when($q !== '', fn ($w) => $w->where(fn ($x) => $x->where('file_no', 'like', $like)->orWhere('vin', 'like', $like)
@@ -57,6 +58,7 @@ class VehicleController extends Controller
                 'delivered' => Vehicle::whereNull('archived_at')->whereIn('status_id', $delivered ?: [0])->count(),
                 'late' => Vehicle::whereNull('archived_at')->whereNotNull('eta')->whereNull('arrived_at')->whereNotIn('status_id', $arrived ?: [0])->where('eta', '<', now()->toDateString())->count(),
                 'archived' => Vehicle::whereNotNull('archived_at')->count(),
+                'office' => Vehicle::whereNull('archived_at')->whereNull('client_id')->count(),
             ],
         ]);
     }
@@ -97,9 +99,9 @@ class VehicleController extends Controller
             return $vehicle;
         });
 
-        AuditLog::record('vehicle.create', 'إضافة سيارة '.$vehicle->file_no.' ('.$vehicle->title().') للعميل '.$vehicle->client->full_name.' بمبلغ مستحق '.money($vehicle->total_due), $vehicle);
-        Notifier::staff('vehicle.new', 'تمت إضافة سيارة جديدة', $vehicle->file_no.' — '.$vehicle->title().' للعميل '.$vehicle->client->full_name, route('admin.vehicles.show', $vehicle), 'bi-car-front', 'vehicles.view');
-        Notifier::client($vehicle->client, 'vehicle.new', 'تمت إضافة سيارة جديدة إلى حسابك', $vehicle->title(), route('portal.vehicles.show', $vehicle), 'bi-car-front');
+        AuditLog::record('vehicle.create', 'إضافة سيارة '.$vehicle->file_no.' ('.$vehicle->title().') باسم '.$vehicle->ownerName().' بمبلغ مستحق '.money($vehicle->total_due), $vehicle);
+        Notifier::staff('vehicle.new', 'تمت إضافة سيارة جديدة', $vehicle->file_no.' — '.$vehicle->title().' — '.$vehicle->ownerName(), route('admin.vehicles.show', $vehicle), 'bi-car-front', 'vehicles.view');
+        if ($vehicle->client) Notifier::client($vehicle->client, 'vehicle.new', 'تمت إضافة سيارة جديدة إلى حسابك', $vehicle->title(), route('portal.vehicles.show', $vehicle), 'bi-car-front');
 
         return redirect()->route('admin.vehicles.show', $vehicle)->with('success', 'تم حفظ السيارة بنجاح برقم ملف '.$vehicle->file_no);
     }
@@ -131,10 +133,11 @@ class VehicleController extends Controller
         $user = $request->user();
         $oldEta = $vehicle->eta?->toDateString();
         $oldDue = (string) $vehicle->total_due;
+        $oldClient = $vehicle->client_id;
         $newStatusId = $data['status_id'] ?? null;
         unset($data['status_id']);
 
-        DB::transaction(function () use ($vehicle, $data, $request, $user, $oldEta, $oldDue, $newStatusId) {
+        DB::transaction(function () use ($vehicle, $data, $request, $user, $oldEta, $oldDue, $newStatusId, $oldClient) {
             $vehicle->fill($data);
             $dirty = array_keys($vehicle->getDirty());
             $vehicle->updated_by = $user->id;
@@ -142,6 +145,17 @@ class VehicleController extends Controller
             $this->syncCostItems($vehicle, $request);
             $this->storeImages($vehicle, $request);
 
+            if ($oldClient !== $vehicle->client_id) {
+                if ($oldClient && $vehicle->payments()->exists()) {
+                    throw \Illuminate\Validation\ValidationException::withMessages(['client_id' => 'لا يمكن نقل سيارة عليها دفعات مسجلة لعميل آخر.']);
+                }
+                $vehicle->documents()->update(['client_id' => $vehicle->client_id]);
+                $vehicle->load('client');
+                AuditLog::record('vehicle.owner', 'تغيير مالك السيارة '.$vehicle->file_no.' إلى: '.$vehicle->ownerName(), $vehicle);
+                if ($vehicle->client) {
+                    Notifier::client($vehicle->client, 'vehicle.new', 'تمت إضافة سيارة جديدة إلى حسابك', $vehicle->title(), route('portal.vehicles.show', $vehicle), 'bi-car-front');
+                }
+            }
             if ($dirty) {
                 AuditLog::record('vehicle.update', 'تعديل بيانات السيارة '.$vehicle->file_no.' (الحقول: '.implode('، ', $dirty).')', $vehicle);
             }
@@ -206,7 +220,7 @@ class VehicleController extends Controller
         $user = $request->user();
         $money = 'nullable|numeric|min:0|max:99999999999';
         $data = $request->validate([
-            'client_id' => ['required', 'integer', \Illuminate\Validation\Rule::exists('clients', 'id')->whereNull('archived_at')],
+            'client_id' => ['nullable', 'integer', \Illuminate\Validation\Rule::exists('clients', 'id')->whereNull('archived_at')],
             'status_id' => 'nullable|exists:vehicle_statuses,id',
             'make' => 'required|string|max:80',
             'model' => 'required|string|max:80',
@@ -240,6 +254,8 @@ class VehicleController extends Controller
             'total_due' => $money,
             'currency' => 'nullable|string|size:3',
             'financial_notes' => 'nullable|string|max:5000',
+            'sale_price' => $money,
+            'public_notes' => 'nullable|string|max:5000',
             'cost_items' => 'nullable|array|max:50',
             'cost_items.*.description' => 'nullable|string|max:255',
             'cost_items.*.amount' => 'nullable|numeric|min:0|max:99999999999',
@@ -257,6 +273,9 @@ class VehicleController extends Controller
         $data['vin'] = isset($data['vin']) ? strtoupper($data['vin']) : null;
         $data['currency'] = strtoupper($data['currency'] ?? setting('currency', 'OMR'));
         $data['mileage_unit'] = $data['mileage_unit'] ?? 'mi';
+        $data['client_id'] = $data['client_id'] ?? null;
+        $data['is_listed'] = $request->boolean('is_listed');
+        $data['sale_price'] = isset($data['sale_price']) && $data['sale_price'] !== '' ? $data['sale_price'] : null;
 
         // من لا يملك صلاحية المالية لا يستطيع تعديل المبالغ
         if (! $user->hasPermission('payments.manage')) {

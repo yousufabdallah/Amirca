@@ -27,7 +27,7 @@ class DocumentController extends Controller
         return $this->store($request, $client, $vehicle);
     }
 
-    protected function store(Request $request, Client $client, ?Vehicle $vehicle)
+    protected function store(Request $request, ?Client $client, ?Vehicle $vehicle)
     {
         $data = $request->validate([
             'title' => 'required|string|max:200',
@@ -38,17 +38,17 @@ class DocumentController extends Controller
 
         $file = $request->file('file');
         $doc = VehicleDocument::create([
-            'client_id' => $client->id,
+            'client_id' => $client?->id,
             'vehicle_id' => $vehicle?->id,
             'type' => $data['type'],
             'title' => $data['title'],
-            'path' => FileStore::storeDocument($file, 'documents/'.$client->id),
+            'path' => FileStore::storeDocument($file, 'documents/'.($client?->id ?? 'office')),
             'original_name' => mb_substr($file->getClientOriginalName(), 0, 250),
             'size' => $file->getSize(),
             'visible_to_client' => $request->boolean('visible_to_client'),
             'uploaded_by' => $request->user()->id,
         ]);
-        AuditLog::record('document.upload', 'رفع مستند "'.$doc->title.'" '.($vehicle ? 'للسيارة '.$vehicle->file_no : 'للعميل '.$client->client_no).($doc->visible_to_client ? ' (ظاهر للعميل)' : ' (داخلي)'), $vehicle ?? $client);
+        AuditLog::record('document.upload', 'رفع مستند "'.$doc->title.'" '.($vehicle ? 'للسيارة '.$vehicle->file_no : 'للعميل '.$client?->client_no).($doc->visible_to_client ? ' (ظاهر للعميل)' : ' (داخلي)'), $vehicle ?? $client);
         if ($doc->visible_to_client) {
             Notifier::client($client, 'document.new', 'تمت إضافة مستند جديد', $doc->title, route('portal.documents'), 'bi-file-earmark-pdf');
         }

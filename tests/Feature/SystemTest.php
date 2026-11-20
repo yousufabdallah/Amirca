@@ -244,4 +244,55 @@ class SystemTest extends TestCase
         $ok = \App\Models\AppNotification::create(['user_id' => $admin->id, 'type' => 't', 'title' => 't', 'url' => url('/admin/clients')]);
         $this->get("/admin/notifications/{$ok->id}")->assertRedirect(url('/admin/clients'));
     }
+
+    public function test_office_vehicle_showroom_and_sharing(): void
+    {
+        Storage::fake('local');
+        $this->actingAs($this->admin());
+        // تسجيل سيارة باسم المكتب بدون عميل
+        $this->post('/admin/vehicles', ['make' => 'Lexus', 'model' => 'LX 600', 'year' => 2023, 'vin' => 'JTJHY00W0P4000001',
+            'purchase_price' => '30000', 'sale_price' => '38500', 'is_listed' => 1, 'public_notes' => 'نظيفة جدًا',
+            'images' => [UploadedFile::fake()->image('a.jpg'), UploadedFile::fake()->image('b.jpg')]])->assertRedirect()->assertSessionHasNoErrors();
+        $v = Vehicle::latest('id')->first();
+        $this->assertNull($v->client_id);
+        $img = $v->images()->first();
+        foreach (['/admin/vehicles', '/admin/vehicles?tab=office', "/admin/vehicles/{$v->id}", "/admin/vehicles/{$v->id}/edit", "/admin/vehicles/{$v->id}/print", '/admin', '/admin/arrivals?bucket=no_eta', '/admin/reports/vehicles', '/admin/reports/costs', '/admin/search?q=Lexus'] as $u) {
+            $this->get($u)->assertOk();
+        }
+        $this->get("/admin/vehicles/{$v->id}/statement")->assertNotFound();
+        $this->post('/admin/logout');
+
+        // صفحة الهبوط والمعرض ورابط المشاركة بدون تسجيل دخول
+        $this->get('/')->assertOk()->assertSee('LX 600')->assertSee($v->publicUrl(), false);
+        $this->get('/cars')->assertOk()->assertSee('LX 600');
+        $this->get('/cars?make=Lexus&sort=price_asc')->assertOk()->assertSee('LX 600');
+        $page = $this->get("/cars/{$v->file_no}")->assertOk()->assertSee('LX 600')->assertSee('38,500.000')->assertSee('نظيفة جدًا')->assertSee('og:image', false);
+        $page->assertDontSee('30,000.000'); // سعر الشراء الداخلي لا يظهر
+        $this->get("/cars/{$v->file_no}/images/{$img->id}")->assertOk();
+
+        // إخفاء من المعرض
+        $v->update(['is_listed' => false]);
+        $this->get("/cars/{$v->file_no}")->assertNotFound();
+        $this->get("/cars/{$v->file_no}/images/{$img->id}")->assertNotFound();
+        $v->update(['is_listed' => true]);
+
+        // بيعها لعميل: تختفي من المعرض وتظهر في حسابه
+        $client = $this->makeClient();
+        $this->put("/admin/vehicles/{$v->id}", ['client_id' => $client->id, 'make' => 'Lexus', 'model' => 'LX 600', 'year' => 2023, 'total_due' => '38500', 'is_listed' => 1])->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertSame($client->id, $v->fresh()->client_id);
+        $this->post('/admin/logout');
+        $this->get("/cars/{$v->file_no}")->assertNotFound();
+        $this->get('/cars')->assertDontSee('LX 600');
+        $this->post('/login', ['login' => '91234567', 'password' => 'Client@123']);
+        $this->get("/portal/vehicles/{$v->id}")->assertOk()->assertSee('LX 600');
+    }
+
+    public function test_client_vehicles_are_never_public(): void
+    {
+        $client = $this->makeClient();
+        $v = $this->makeVehicle($client);
+        $this->post('/admin/logout');
+        $this->get("/cars/{$v->file_no}")->assertNotFound();
+        $this->get('/')->assertOk()->assertDontSee($v->file_no);
+    }
 }

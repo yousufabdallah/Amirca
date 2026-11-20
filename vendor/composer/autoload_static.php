@@ -590,6 +590,7 @@ class ComposerStaticInitb4ba4a1ef1ffe59ac75878c5121837fc
         'App\\Http\\Controllers\\Portal\\ProfileController' => __DIR__ . '/../..' . '/app/Http/Controllers/Portal/ProfileController.php',
         'App\\Http\\Controllers\\Portal\\UpdatesController' => __DIR__ . '/../..' . '/app/Http/Controllers/Portal/UpdatesController.php',
         'App\\Http\\Controllers\\Portal\\VehicleController' => __DIR__ . '/../..' . '/app/Http/Controllers/Portal/VehicleController.php',
+        'App\\Http\\Controllers\\ShowroomController' => __DIR__ . '/../..' . '/app/Http/Controllers/ShowroomController.php',
         'App\\Http\\Controllers\\SiteController' => __DIR__ . '/../..' . '/app/Http/Controllers/SiteController.php',
         'App\\Http\\Middleware\\EnsureBackoffice' => __DIR__ . '/../..' . '/app/Http/Middleware/EnsureBackoffice.php',
         'App\\Http\\Middleware\\EnsureClient' => __DIR__ . '/../..' . '/app/Http/Middleware/EnsureClient.php',

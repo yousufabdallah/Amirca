@@ -31,7 +31,7 @@
                 <tbody>
                 @forelse ($upcoming as $v)
                     <tr onclick="location.href='{{ route('admin.vehicles.show', $v) }}'" style="cursor:pointer">
-                        <td><b>{{ $v->title() }}</b><div class="small text-muted">{{ $v->file_no }} · {{ $v->client->full_name }}</div></td>
+                        <td><b>{{ $v->title() }}</b><div class="small text-muted">{{ $v->file_no }} · {{ $v->ownerName() }}</div></td>
                         <td>{!! status_badge($v->status) !!}</td>
                         <td class="text-nowrap"><b>{{ fmt_date($v->eta) }}</b><div class="small text-success">{{ $v->daysToEta() === 0 ? 'اليوم' : 'بعد '.$v->daysToEta().' يوم' }}</div></td>
                     </tr>
@@ -49,7 +49,7 @@
                 <tbody>
                 @forelse ($late as $v)
                     <tr onclick="location.href='{{ route('admin.vehicles.show', $v) }}'" style="cursor:pointer">
-                        <td><b>{{ $v->title() }}</b><div class="small text-muted">{{ $v->file_no }} · {{ $v->client->full_name }}</div></td>
+                        <td><b>{{ $v->title() }}</b><div class="small text-muted">{{ $v->file_no }} · {{ $v->ownerName() }}</div></td>
                         <td>{!! status_badge($v->status) !!}</td>
                         <td class="text-nowrap"><b>{{ fmt_date($v->eta) }}</b><div class="small text-danger">متأخرة {{ abs($v->daysToEta()) }} يوم</div></td>
                     </tr>
@@ -70,7 +70,7 @@
                     <tr>
                         <td style="width:76px">@if ($v->primaryImage)<img src="{{ route('admin.images.show', $v->primaryImage) }}" class="thumb" alt="" loading="lazy">@else<span class="thumb-ph"><i class="bi bi-car-front"></i></span>@endif</td>
                         <td><a href="{{ route('admin.vehicles.show', $v) }}" class="fw-bold">{{ $v->title() }}</a><div class="small text-muted">{{ $v->file_no }}</div></td>
-                        <td class="small">{{ $v->client->full_name }}</td>
+                        <td class="small">{{ $v->ownerName() }}</td>
                         <td>{!! status_badge($v->status) !!}</td>
                     </tr>
                 @empty

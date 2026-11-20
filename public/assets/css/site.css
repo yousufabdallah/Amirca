@@ -85,3 +85,20 @@ body.site { background: #fff; }
 .slide-dots { position: absolute; bottom: 14px; left: 0; right: 0; display: flex; justify-content: center; gap: 6px; z-index: 2; }
 .slide-dots button { width: 8px; height: 8px; border-radius: 4px; border: 0; padding: 0; background: rgba(255, 255, 255, .5); transition: width .3s, background .3s; }
 .slide-dots button.active { width: 24px; background: var(--gold); }
+
+/* صفحات المعرض الداخلية */
+body.inner { background: #f3f5f9; }
+.inner .s-nav { background: rgba(10, 23, 48, .97); padding: .6rem 0; box-shadow: 0 6px 30px rgba(0, 0, 0, .18); }
+.inner-main { padding-top: 72px; min-height: 70vh; }
+.page-hero { background: linear-gradient(140deg, var(--navy-900), var(--navy-700)); color: #fff; padding: 3rem 0 4.5rem; margin-bottom: -2.5rem; }
+.page-hero h1 { font-size: clamp(1.7rem, 3.5vw, 2.4rem); }
+.page-hero p { color: #c4cee0; max-width: 620px; margin: 0; }
+.showroom-filter { background: #fff; border-radius: 18px; padding: 1rem; box-shadow: 0 8px 30px rgba(15, 35, 71, .08); margin-bottom: 1.75rem; position: relative; }
+.car-card .price { font-family: 'Cairo'; font-weight: 800; color: var(--navy-800); font-size: 1.05rem; }
+.buy-box { background: linear-gradient(140deg, var(--navy-800), var(--navy-900)); color: #fff; border-radius: 20px; padding: 1.5rem; position: sticky; top: 90px; }
+.buy-box h1 { font-size: 1.6rem; margin-bottom: .2rem; }
+.bb-price { font-family: 'Cairo'; font-weight: 800; font-size: 1.9rem; color: #e4c477; line-height: 1.3; }
+.bb-row { margin-top: .9rem; padding: .7rem .9rem; border-radius: 12px; background: rgba(255, 255, 255, .07); font-size: .92rem; }
+.bb-row .bi { color: var(--gold); }
+@media (max-width: 991.98px) { .buy-box { position: static; } }
+.home-cars { background: #f3f5f9; }

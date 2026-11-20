@@ -225,14 +225,15 @@ CREATE TABLE `migrations` (
   `migration` varchar(255) NOT NULL,
   `batch` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 LOCK TABLES `migrations` WRITE;
 /*!40000 ALTER TABLE `migrations` DISABLE KEYS */;
 INSERT INTO `migrations` VALUES
 (1,'2026_01_01_000000_create_framework_tables',1),
-(2,'2026_01_01_000001_create_business_tables',1);
+(2,'2026_01_01_000001_create_business_tables',1),
+(3,'2026_11_20_000000_office_stock_and_showroom',1);
 /*!40000 ALTER TABLE `migrations` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `notifications`;
@@ -351,36 +352,36 @@ CREATE TABLE `settings` (
 LOCK TABLES `settings` WRITE;
 /*!40000 ALTER TABLE `settings` DISABLE KEYS */;
 INSERT INTO `settings` VALUES
-('about_text','العميد للاستيراد والتصدير مكتب عُماني متخصص في استيراد السيارات من الولايات المتحدة الأمريكية.\nنرافقك في كل خطوة: من اختيار السيارة المناسبة وشرائها من المزادات الموثوقة، مرورًا بالنقل والشحن البحري، وصولًا إلى التخليص الجمركي وتسليمها لك جاهزة.','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('about_title','من نحن','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('address','سلطنة عُمان - مسقط','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('contact_text','لديك استفسار أو ترغب في استيراد سيارة؟ راسلنا وسنتواصل معك في أقرب وقت.','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('currency','OMR','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('date_format','d/m/Y','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('documents_default_visible','1','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('email','info@alameed.om','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('footer_text','شريكك الموثوق في استيراد السيارات من الولايات المتحدة الأمريكية إلى سلطنة عُمان.','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('hero_badge','خبرة موثوقة في استيراد السيارات','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('hero_subtitle','نشتري لك من أكبر المزادات الأمريكية، ونتولى الشحن والتخليص الجمركي، وتتابع كل مرحلة لحظة بلحظة من حسابك الخاص.','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('hero_title','سيارتك من أمريكا إلى باب بيتك في عُمان','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('home_services','شراء السيارات من المزادات | نشتري لك من Copart وIAAI وManheim وغيرها بعد فحص التقارير والصور | bi-hammer\nالنقل الداخلي في أمريكا | ننقل السيارة من ساحة المزاد إلى ميناء الشحن بأمان | bi-truck\nالشحن البحري إلى عُمان | شحن بالحاويات أو RoRo مع شركات شحن معتمدة | bi-water\nالتخليص الجمركي | ننهي جميع الإجراءات الجمركية والأوراق الرسمية نيابة عنك | bi-file-earmark-check\nمتابعة إلكترونية | حساب خاص تتابع فيه سيارتك ودفعاتك وصورها في أي وقت | bi-phone\nاستشارة قبل الشراء | نساعدك في اختيار السيارة المناسبة لميزانيتك | bi-chat-dots','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('home_steps','اطلب سيارتك | أخبرنا بالسيارة التي تريدها وميزانيتك\nالبحث والشراء | نبحث في المزادات ونشتري السيارة بعد موافقتك\nالنقل والشحن | ننقل السيارة إلى الميناء ونشحنها إلى عُمان\nالتخليص والتسليم | نخلّص الإجراءات الجمركية ونسلمك السيارة','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('home_why','شفافية كاملة | تشاهد كل التكاليف والدفعات والمتبقي في حسابك | bi-eye\nمتابعة لحظية | تعرف أين وصلت سيارتك وموعد وصولها المتوقع | bi-broadcast\nخبرة وثقة | تعامل مع مزادات وشركات شحن موثوقة | bi-shield-check\nأسعار منافسة | تكاليف واضحة بدون رسوم مخفية | bi-tags','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('office_name','العميد للاستيراد والتصدير','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('office_tagline','استيراد السيارات من الولايات المتحدة إلى سلطنة عُمان','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('phone','+968 9000 0000','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('receipt_footer','شكرًا لتعاملكم مع العميد للاستيراد والتصدير','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('receipt_prefix','','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('receipt_start','1001','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('receipt_terms','هذا الإيصال صادر إلكترونيًا ولا يحتاج إلى توقيع.','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('stat_1_label','سيارة تم استيرادها','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('stat_1_value','+500','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('stat_2_label','سنوات خبرة','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('stat_2_value','+10','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('stat_3_label','متابعة إلكترونية','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('stat_3_value','100%','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('whatsapp','96890000000','2026-11-15 15:44:27','2026-11-15 15:44:27'),
-('working_hours','السبت - الخميس: 9 صباحًا - 9 مساءً','2026-11-15 15:44:27','2026-11-15 15:44:27');
+('about_text','العميد للاستيراد والتصدير مكتب عُماني متخصص في استيراد السيارات من الولايات المتحدة الأمريكية.\nنرافقك في كل خطوة: من اختيار السيارة المناسبة وشرائها من المزادات الموثوقة، مرورًا بالنقل والشحن البحري، وصولًا إلى التخليص الجمركي وتسليمها لك جاهزة.','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('about_title','من نحن','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('address','سلطنة عُمان - مسقط','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('contact_text','لديك استفسار أو ترغب في استيراد سيارة؟ راسلنا وسنتواصل معك في أقرب وقت.','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('currency','OMR','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('date_format','d/m/Y','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('documents_default_visible','1','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('email','info@alameed.om','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('footer_text','شريكك الموثوق في استيراد السيارات من الولايات المتحدة الأمريكية إلى سلطنة عُمان.','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('hero_badge','خبرة موثوقة في استيراد السيارات','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('hero_subtitle','نشتري لك من أكبر المزادات الأمريكية، ونتولى الشحن والتخليص الجمركي، وتتابع كل مرحلة لحظة بلحظة من حسابك الخاص.','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('hero_title','سيارتك من أمريكا إلى باب بيتك في عُمان','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('home_services','شراء السيارات من المزادات | نشتري لك من Copart وIAAI وManheim وغيرها بعد فحص التقارير والصور | bi-hammer\nالنقل الداخلي في أمريكا | ننقل السيارة من ساحة المزاد إلى ميناء الشحن بأمان | bi-truck\nالشحن البحري إلى عُمان | شحن بالحاويات أو RoRo مع شركات شحن معتمدة | bi-water\nالتخليص الجمركي | ننهي جميع الإجراءات الجمركية والأوراق الرسمية نيابة عنك | bi-file-earmark-check\nمتابعة إلكترونية | حساب خاص تتابع فيه سيارتك ودفعاتك وصورها في أي وقت | bi-phone\nاستشارة قبل الشراء | نساعدك في اختيار السيارة المناسبة لميزانيتك | bi-chat-dots','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('home_steps','اطلب سيارتك | أخبرنا بالسيارة التي تريدها وميزانيتك\nالبحث والشراء | نبحث في المزادات ونشتري السيارة بعد موافقتك\nالنقل والشحن | ننقل السيارة إلى الميناء ونشحنها إلى عُمان\nالتخليص والتسليم | نخلّص الإجراءات الجمركية ونسلمك السيارة','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('home_why','شفافية كاملة | تشاهد كل التكاليف والدفعات والمتبقي في حسابك | bi-eye\nمتابعة لحظية | تعرف أين وصلت سيارتك وموعد وصولها المتوقع | bi-broadcast\nخبرة وثقة | تعامل مع مزادات وشركات شحن موثوقة | bi-shield-check\nأسعار منافسة | تكاليف واضحة بدون رسوم مخفية | bi-tags','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('office_name','العميد للاستيراد والتصدير','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('office_tagline','استيراد السيارات من الولايات المتحدة إلى سلطنة عُمان','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('phone','+968 9000 0000','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('receipt_footer','شكرًا لتعاملكم مع العميد للاستيراد والتصدير','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('receipt_prefix','','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('receipt_start','1001','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('receipt_terms','هذا الإيصال صادر إلكترونيًا ولا يحتاج إلى توقيع.','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('stat_1_label','سيارة تم استيرادها','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('stat_1_value','+500','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('stat_2_label','سنوات خبرة','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('stat_2_value','+10','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('stat_3_label','متابعة إلكترونية','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('stat_3_value','100%','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('whatsapp','96890000000','2026-11-20 20:01:30','2026-11-20 20:01:30'),
+('working_hours','السبت - الخميس: 9 صباحًا - 9 مساءً','2026-11-20 20:01:30','2026-11-20 20:01:30');
 /*!40000 ALTER TABLE `settings` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `users`;
@@ -412,7 +413,7 @@ CREATE TABLE `users` (
 LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `users` DISABLE KEYS */;
 INSERT INTO `users` VALUES
-(1,'مدير النظام','admin',NULL,'admin@your-domain.com','$2y$12$8l5AU7FA0KCRyxvmjDkWB.XSg89Tbk/KKFX4tU7Q//w9yyNVGaMHG','admin',NULL,1,NULL,NULL,NULL,'2026-11-15 15:44:27','2026-11-15 15:44:27');
+(1,'مدير النظام','admin',NULL,'admin@your-domain.com','$2y$12$kGHXFLHCcTgsk/tMVRk/p.Pb4.h4GVq9I5YZdJnKiytPvzEB3jN0C','admin',NULL,1,NULL,NULL,NULL,'2026-11-20 20:01:30','2026-11-20 20:01:30');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `vehicle_cost_items`;
@@ -440,7 +441,7 @@ DROP TABLE IF EXISTS `vehicle_documents`;
 /*!40101 SET character_set_client = utf8mb4 */;
 CREATE TABLE `vehicle_documents` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `client_id` bigint(20) unsigned NOT NULL,
+  `client_id` bigint(20) unsigned DEFAULT NULL,
   `vehicle_id` bigint(20) unsigned DEFAULT NULL,
   `type` enum('purchase_invoice','shipping','customs','client','other') NOT NULL DEFAULT 'other',
   `title` varchar(255) NOT NULL,
@@ -452,9 +453,9 @@ CREATE TABLE `vehicle_documents` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
-  KEY `vehicle_documents_client_id_foreign` (`client_id`),
   KEY `vehicle_documents_vehicle_id_foreign` (`vehicle_id`),
   KEY `vehicle_documents_uploaded_by_foreign` (`uploaded_by`),
+  KEY `vehicle_documents_client_id_foreign` (`client_id`),
   CONSTRAINT `vehicle_documents_client_id_foreign` FOREIGN KEY (`client_id`) REFERENCES `clients` (`id`) ON DELETE CASCADE,
   CONSTRAINT `vehicle_documents_uploaded_by_foreign` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `vehicle_documents_vehicle_id_foreign` FOREIGN KEY (`vehicle_id`) REFERENCES `vehicles` (`id`) ON DELETE CASCADE
@@ -541,17 +542,17 @@ CREATE TABLE `vehicle_statuses` (
 LOCK TABLES `vehicle_statuses` WRITE;
 /*!40000 ALTER TABLE `vehicle_statuses` DISABLE KEYS */;
 INSERT INTO `vehicle_statuses` VALUES
-(1,'تم استلام الطلب','#64748b','bi-inbox','pre_purchase',1,1,'2026-11-15 15:44:27','2026-11-15 15:44:27'),
-(2,'البحث عن السيارة','#6366f1','bi-search','pre_purchase',2,1,'2026-11-15 15:44:27','2026-11-15 15:44:27'),
-(3,'تم شراء السيارة','#0ea5e9','bi-bag-check','purchased',3,1,'2026-11-15 15:44:27','2026-11-15 15:44:27'),
-(4,'في ساحة المزاد','#0891b2','bi-building','purchased',4,1,'2026-11-15 15:44:27','2026-11-15 15:44:27'),
-(5,'في النقل الداخلي بأمريكا','#0d9488','bi-truck','purchased',5,1,'2026-11-15 15:44:27','2026-11-15 15:44:27'),
-(6,'تم الشحن من أمريكا','#2563eb','bi-box-seam','shipping',6,1,'2026-11-15 15:44:27','2026-11-15 15:44:27'),
-(7,'في الطريق إلى سلطنة عُمان','#1d4ed8','bi-water','shipping',7,1,'2026-11-15 15:44:27','2026-11-15 15:44:27'),
-(8,'وصلت إلى ميناء عُمان','#c8a24a','bi-geo-alt-fill','arrived',8,1,'2026-11-15 15:44:27','2026-11-15 15:44:27'),
-(9,'إجراءات التخليص الجمركي','#d97706','bi-file-earmark-check','arrived',9,1,'2026-11-15 15:44:27','2026-11-15 15:44:27'),
-(10,'جاهزة للتسليم','#16a34a','bi-key','arrived',10,1,'2026-11-15 15:44:27','2026-11-15 15:44:27'),
-(11,'تم التسليم','#15803d','bi-patch-check-fill','delivered',11,1,'2026-11-15 15:44:27','2026-11-15 15:44:27');
+(1,'تم استلام الطلب','#64748b','bi-inbox','pre_purchase',1,1,'2026-11-20 20:01:30','2026-11-20 20:01:30'),
+(2,'البحث عن السيارة','#6366f1','bi-search','pre_purchase',2,1,'2026-11-20 20:01:30','2026-11-20 20:01:30'),
+(3,'تم شراء السيارة','#0ea5e9','bi-bag-check','purchased',3,1,'2026-11-20 20:01:30','2026-11-20 20:01:30'),
+(4,'في ساحة المزاد','#0891b2','bi-building','purchased',4,1,'2026-11-20 20:01:30','2026-11-20 20:01:30'),
+(5,'في النقل الداخلي بأمريكا','#0d9488','bi-truck','purchased',5,1,'2026-11-20 20:01:30','2026-11-20 20:01:30'),
+(6,'تم الشحن من أمريكا','#2563eb','bi-box-seam','shipping',6,1,'2026-11-20 20:01:30','2026-11-20 20:01:30'),
+(7,'في الطريق إلى سلطنة عُمان','#1d4ed8','bi-water','shipping',7,1,'2026-11-20 20:01:30','2026-11-20 20:01:30'),
+(8,'وصلت إلى ميناء عُمان','#c8a24a','bi-geo-alt-fill','arrived',8,1,'2026-11-20 20:01:30','2026-11-20 20:01:30'),
+(9,'إجراءات التخليص الجمركي','#d97706','bi-file-earmark-check','arrived',9,1,'2026-11-20 20:01:30','2026-11-20 20:01:30'),
+(10,'جاهزة للتسليم','#16a34a','bi-key','arrived',10,1,'2026-11-20 20:01:30','2026-11-20 20:01:30'),
+(11,'تم التسليم','#15803d','bi-patch-check-fill','delivered',11,1,'2026-11-20 20:01:30','2026-11-20 20:01:30');
 /*!40000 ALTER TABLE `vehicle_statuses` ENABLE KEYS */;
 UNLOCK TABLES;
 DROP TABLE IF EXISTS `vehicles`;
@@ -560,7 +561,7 @@ DROP TABLE IF EXISTS `vehicles`;
 CREATE TABLE `vehicles` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `file_no` varchar(20) DEFAULT NULL,
-  `client_id` bigint(20) unsigned NOT NULL,
+  `client_id` bigint(20) unsigned DEFAULT NULL,
   `status_id` bigint(20) unsigned DEFAULT NULL,
   `make` varchar(80) NOT NULL,
   `model` varchar(80) NOT NULL,
@@ -596,13 +597,15 @@ CREATE TABLE `vehicles` (
   `currency` varchar(3) NOT NULL DEFAULT 'OMR',
   `financial_notes` text DEFAULT NULL,
   `archived_at` timestamp NULL DEFAULT NULL,
+  `is_listed` tinyint(1) NOT NULL DEFAULT 1,
+  `sale_price` decimal(14,3) DEFAULT NULL,
+  `public_notes` text DEFAULT NULL,
   `created_by` bigint(20) unsigned DEFAULT NULL,
   `updated_by` bigint(20) unsigned DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `vehicles_file_no_unique` (`file_no`),
-  KEY `vehicles_client_id_foreign` (`client_id`),
   KEY `vehicles_status_id_foreign` (`status_id`),
   KEY `vehicles_created_by_foreign` (`created_by`),
   KEY `vehicles_updated_by_foreign` (`updated_by`),
@@ -613,6 +616,7 @@ CREATE TABLE `vehicles` (
   KEY `vehicles_container_no_index` (`container_no`),
   KEY `vehicles_eta_index` (`eta`),
   KEY `vehicles_archived_at_index` (`archived_at`),
+  KEY `vehicles_client_id_foreign` (`client_id`),
   CONSTRAINT `vehicles_client_id_foreign` FOREIGN KEY (`client_id`) REFERENCES `clients` (`id`),
   CONSTRAINT `vehicles_created_by_foreign` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL,
   CONSTRAINT `vehicles_status_id_foreign` FOREIGN KEY (`status_id`) REFERENCES `vehicle_statuses` (`id`),

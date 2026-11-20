@@ -6,14 +6,14 @@
 <div class="page-head">
     <div>
         <h1>{{ $vehicle->title() }} {!! status_badge($vehicle->status) !!}</h1>
-        <div class="crumb"><a href="{{ route('admin.vehicles.index') }}">السيارات</a> / <b>{{ $vehicle->file_no }}</b> · العميل: <a href="{{ route('admin.clients.show', $vehicle->client) }}">{{ $vehicle->client->full_name }}</a> ({{ $vehicle->client->client_no }})
+        <div class="crumb"><a href="{{ route('admin.vehicles.index') }}">السيارات</a> / <b>{{ $vehicle->file_no }}</b> · @if ($vehicle->client)العميل: <a href="{{ route('admin.clients.show', $vehicle->client) }}">{{ $vehicle->client->full_name }}</a> ({{ $vehicle->client->client_no }})@else<span class="badge bg-warning-subtle text-warning-emphasis"><i class="bi bi-shop"></i> باسم المكتب</span> @if ($vehicle->isPublic())<a href="{{ $vehicle->publicUrl() }}" target="_blank">عرض في المعرض</a>@else<span class="text-muted">(غير معروضة)</span>@endif @endif
             @if ($vehicle->archived_at)<span class="badge bg-secondary">مؤرشفة</span>@endif
             @if ($vehicle->isLate())<span class="badge bg-danger"><i class="bi bi-exclamation-triangle"></i> متأخرة {{ abs($vehicle->daysToEta()) }} يوم عن الموعد</span>@endif</div>
     </div>
     <div class="d-flex flex-wrap gap-2">
         @can('vehicles.manage')<a href="{{ route('admin.vehicles.edit', $vehicle) }}" class="btn btn-primary"><i class="bi bi-pencil"></i> تعديل</a>@endcan
-        @can('payments.manage')<a href="{{ route('admin.payments.create', ['vehicle_id' => $vehicle->id]) }}" class="btn btn-gold"><i class="bi bi-cash"></i> إضافة دفعة</a>@endcan
-        @if ($canFin)<a href="{{ route('admin.vehicles.statement', $vehicle) }}" target="_blank" class="btn btn-outline-primary"><i class="bi bi-file-text"></i> كشف حساب</a>@endif
+        @if ($vehicle->client) @can('payments.manage')<a href="{{ route('admin.payments.create', ['vehicle_id' => $vehicle->id]) }}" class="btn btn-gold"><i class="bi bi-cash"></i> إضافة دفعة</a>@endcan @endif
+        @if ($canFin && $vehicle->client)<a href="{{ route('admin.vehicles.statement', $vehicle) }}" target="_blank" class="btn btn-outline-primary"><i class="bi bi-file-text"></i> كشف حساب</a>@endif
         <a href="{{ route('admin.vehicles.print', $vehicle) }}" target="_blank" class="btn btn-light"><i class="bi bi-printer"></i> بطاقة السيارة</a>
         @can('vehicles.manage')
             @if ($vehicle->archived_at)<form method="post" action="{{ route('admin.vehicles.restore', $vehicle) }}">@csrf<button class="btn btn-light"><i class="bi bi-arrow-counterclockwise"></i> استعادة</button></form>

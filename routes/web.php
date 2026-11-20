@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::get('/', [SiteController::class, 'home'])->name('home');
+Route::get('/cars', [\App\Http\Controllers\ShowroomController::class, 'index'])->name('showroom.index');
+Route::get('/cars/{fileNo}', [\App\Http\Controllers\ShowroomController::class, 'show'])->where('fileNo', 'AL-CAR-[0-9]+')->name('showroom.show');
+Route::get('/cars/{fileNo}/images/{image}', [\App\Http\Controllers\ShowroomController::class, 'image'])->where('fileNo', 'AL-CAR-[0-9]+')->name('showroom.image');
 Route::post('/contact', [SiteController::class, 'contact'])->middleware('throttle:5,10')->name('contact');
 Route::get('/media/site/{key}', [SiteController::class, 'media'])->whereIn('key', ['logo', 'hero', 'about'])->name('site.media');
 Route::get('/media/slide/{index}', [SiteController::class, 'slide'])->whereNumber('index')->name('site.slide');

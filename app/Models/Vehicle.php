@@ -17,7 +17,7 @@ class Vehicle extends Model
         'mileage', 'mileage_unit', 'condition', 'notes', 'purchase_location', 'auction_name', 'auction_url', 'purchase_date',
         'purchase_price', 'auction_fees', 'inland_transport', 'cost_currency', 'purchase_notes', 'departure_port', 'arrival_port',
         'shipping_company', 'vessel_name', 'container_no', 'shipping_date', 'eta', 'arrived_at', 'total_due', 'currency',
-        'financial_notes',
+        'financial_notes', 'is_listed', 'sale_price', 'public_notes',
     ];
 
     protected function casts(): array
@@ -32,6 +32,8 @@ class Vehicle extends Model
             'auction_fees' => 'decimal:3',
             'inland_transport' => 'decimal:3',
             'total_due' => 'decimal:3',
+            'sale_price' => 'decimal:3',
+            'is_listed' => 'boolean',
         ];
     }
 
@@ -57,6 +59,20 @@ class Vehicle extends Model
     public function creator(): BelongsTo { return $this->belongsTo(User::class, 'created_by'); }
 
     public function scopeActive(Builder $q): Builder { return $q->whereNull('archived_at'); }
+
+    /** سيارات المكتب المعروضة للعامة (غير مرتبطة بعميل) */
+    public function scopePublicListed(Builder $q): Builder
+    {
+        return $q->whereNull('client_id')->where('is_listed', true)->whereNull('archived_at');
+    }
+
+    public function isOfficeStock(): bool { return $this->client_id === null; }
+
+    public function isPublic(): bool { return $this->client_id === null && $this->is_listed && $this->archived_at === null; }
+
+    public function ownerName(): string { return $this->client?->full_name ?? 'المكتب (للبيع)'; }
+
+    public function publicUrl(): string { return route('showroom.show', $this->file_no); }
 
     public function scopeWithPaid(Builder $q): Builder
     {

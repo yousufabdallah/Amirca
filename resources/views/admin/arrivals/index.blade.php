@@ -19,7 +19,7 @@
             <tr>
                 <td style="width:76px">@if ($v->primaryImage)<img src="{{ route('admin.images.show', $v->primaryImage) }}" class="thumb" alt="">@else<span class="thumb-ph"><i class="bi bi-car-front"></i></span>@endif</td>
                 <td><a href="{{ route('admin.vehicles.show', $v) }}" class="fw-bold">{{ $v->title() }}</a><div class="small text-muted">{{ $v->file_no }} · {{ $v->container_no }}</div></td>
-                <td class="small">{{ $v->client->full_name }}<div class="text-muted ltr" dir="ltr">{{ $v->client->phone }}</div></td>
+                <td class="small">@include('admin.partials.owner', ['v' => $v, 'phone' => true])</td>
                 <td class="fw-bold">{{ fmt_date($v->eta) }}</td>
                 <td>{{ $v->arrival_port ?: '—' }}</td>
                 <td>{!! status_badge($v->status) !!}</td>

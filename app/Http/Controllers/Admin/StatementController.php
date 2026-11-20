@@ -29,6 +29,7 @@ class StatementController extends Controller
 
     public function vehicle(Request $request, Vehicle $vehicle)
     {
+        abort_unless($vehicle->client_id, 404, 'السيارة مسجلة باسم المكتب ولا يوجد لها كشف حساب عميل.');
         return Statement::render(Statement::forVehicle($vehicle), $request->query('format', 'html'), 'admin');
     }
 }

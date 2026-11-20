@@ -14,15 +14,16 @@
     @csrf @if ($vehicle->exists) @method('PUT') @endif
 
     <div class="form-section">
-        <div class="fs-head"><span class="n">1</span><h2>ربط السيارة بالعميل</h2></div>
+        <div class="fs-head"><span class="n">1</span><h2>مالك السيارة</h2></div>
         <div class="fs-body row g-3 align-items-end">
             <div class="col-md-8">
-                <label class="form-label required">العميل</label>
-                <select name="client_id" required data-client-select data-url="{{ route('admin.lookup.clients') }}" data-client-no-target="clientNo">
+                <label class="form-label">العميل <span class="text-muted fw-normal">(اختياري)</span></label>
+                <select name="client_id" data-client-select data-clearable data-url="{{ route('admin.lookup.clients') }}" data-client-no-target="clientNo">
                     @if ($vehicle->client)<option value="{{ $vehicle->client->id }}" selected>{{ $vehicle->client->full_name }} — {{ $vehicle->client->phone }} ({{ $vehicle->client->client_no }})</option>@endif
                     @if (old('client_id') && old('client_id') != $vehicle->client_id && ($oc = \App\Models\Client::find(old('client_id'))))<option value="{{ $oc->id }}" selected>{{ $oc->full_name }} — {{ $oc->phone }} ({{ $oc->client_no }})</option>@endif
                 </select>
             </div>
+            <div class="col-12 order-last"><div class="form-text"><i class="bi bi-shop"></i> اترك العميل فارغًا لتسجيل السيارة <b>باسم المكتب</b>؛ وستظهر في معرض السيارات بالصفحة الرئيسية إذا فعّلت «عرض في المعرض». عند بيعها اختر العميل هنا لتنتقل إلى حسابه.</div></div>
             <div class="col-md-4"><div class="p-2 rounded bg-light border">رقم العميل: <b id="clientNo">{{ $vehicle->client?->client_no ?? '—' }}</b></div></div>
         </div>
     </div>
@@ -82,7 +83,7 @@
     <div class="form-section">
         <div class="fs-head"><span class="n">5</span><h2>الحساب المالي</h2></div>
         <div class="fs-body row g-3">
-            <div class="col-md-4"><label class="form-label required">إجمالي المبلغ المستحق من العميل</label><div class="input-group"><input type="number" step="0.001" min="0" name="total_due" value="{{ $val('total_due') }}" class="form-control fw-bold" required><select name="currency" class="form-select" style="max-width:90px">@foreach (['OMR', 'USD', 'AED'] as $c)<option @selected($val('currency', 'OMR') === $c)>{{ $c }}</option>@endforeach</select></div>
+            <div class="col-md-4"><label class="form-label">إجمالي المبلغ المستحق من العميل</label><div class="input-group"><input type="number" step="0.001" min="0" name="total_due" value="{{ $val('total_due') }}" class="form-control fw-bold"><select name="currency" class="form-select" style="max-width:90px">@foreach (['OMR', 'USD', 'AED'] as $c)<option @selected($val('currency', 'OMR') === $c)>{{ $c }}</option>@endforeach</select></div>
                 <div class="form-text">يشمل قيمة السيارة وجميع التكاليف المعتمدة. المتبقي يُحسب تلقائيًا من الدفعات.</div></div>
             <div class="col-md-8"><label class="form-label">ملاحظات مالية</label><textarea name="financial_notes" rows="2" class="form-control">{{ $val('financial_notes') }}</textarea></div>
             <div class="col-12">
@@ -99,6 +100,15 @@
         </div>
     </div>
     @endif
+
+    <div class="form-section">
+        <div class="fs-head"><span class="n"><i class="bi bi-globe2"></i></span><h2>العرض في معرض السيارات (للسيارات باسم المكتب)</h2></div>
+        <div class="fs-body row g-3">
+            <div class="col-md-4"><div class="form-check form-switch mt-md-4"><input type="hidden" name="is_listed" value="0"><input class="form-check-input" type="checkbox" name="is_listed" value="1" id="isl" @checked(old('is_listed', $vehicle->is_listed ?? true))><label class="form-check-label fw-bold" for="isl">عرض في المعرض العام</label></div></div>
+            <div class="col-md-4"><label class="form-label">سعر البيع المعلن</label><div class="input-group"><input type="number" step="0.001" min="0" name="sale_price" value="{{ $val('sale_price') }}" class="form-control"><span class="input-group-text">{{ setting('currency', 'OMR') }}</span></div><div class="form-text">اتركه فارغًا ليظهر «تواصل لمعرفة السعر».</div></div>
+            <div class="col-12"><label class="form-label">وصف للعرض العام</label><textarea name="public_notes" rows="3" class="form-control" placeholder="مميزات السيارة، حالتها، الإضافات...">{{ $val('public_notes') }}</textarea><div class="form-text">لا تظهر للعامة أي تكاليف شراء أو ملاحظات داخلية — فقط بيانات السيارة والصور وهذا الوصف والسعر المعلن.</div></div>
+        </div>
+    </div>
 
     @if ($canMedia)
     <div class="form-section">

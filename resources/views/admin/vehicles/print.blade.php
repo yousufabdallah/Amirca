@@ -28,9 +28,9 @@
         </div>
         <div class="row g-4">
             <div class="col-6"><table class="w-100">
-                <tr><td>العميل</td><td><b>{{ $vehicle->client->full_name }}</b></td></tr>
-                <tr><td>رقم العميل</td><td>{{ $vehicle->client->client_no }}</td></tr>
-                <tr><td>الهاتف</td><td dir="ltr" style="text-align:right">{{ $vehicle->client->phone }}</td></tr>
+                <tr><td>العميل</td><td><b>{{ $vehicle->ownerName() }}</b></td></tr>
+                <tr><td>رقم العميل</td><td>{{ $vehicle->client?->client_no ?? "—" }}</td></tr>
+                <tr><td>الهاتف</td><td dir="ltr" style="text-align:right">{{ $vehicle->client?->phone ?? "—" }}</td></tr>
                 <tr><td>VIN</td><td dir="ltr" style="text-align:right">{{ $vehicle->vin ?: '—' }}</td></tr>
                 <tr><td>الفئة / اللون</td><td>{{ $vehicle->trim ?: '—' }} / {{ $vehicle->color ?: '—' }}</td></tr>
             </table></div>

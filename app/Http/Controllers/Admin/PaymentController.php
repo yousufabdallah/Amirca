@@ -85,9 +85,9 @@ class PaymentController extends Controller
 
         $vehicle = $payment->vehicle()->with('client')->first();
         $fin = $vehicle->financials();
-        AuditLog::record('payment.create', 'تسجيل دفعة '.money($payment->amount).' بإيصال رقم '.$payment->receipt_no.' للسيارة '.$vehicle->file_no.' - العميل '.$vehicle->client->full_name, $payment,
+        AuditLog::record('payment.create', 'تسجيل دفعة '.money($payment->amount).' بإيصال رقم '.$payment->receipt_no.' للسيارة '.$vehicle->file_no.' - العميل '.$vehicle->ownerName(), $payment,
             ['amount' => (string) $payment->amount, 'method' => $payment->method, 'remaining_after' => $fin['remaining']]);
-        Notifier::staff('payment.new', 'تم تسجيل دفعة جديدة', money($payment->amount).' — '.$vehicle->client->full_name.' ('.$vehicle->file_no.')', route('admin.payments.show', $payment), 'bi-cash-coin', 'payments.view');
+        Notifier::staff('payment.new', 'تم تسجيل دفعة جديدة', money($payment->amount).' — '.$vehicle->ownerName().' ('.$vehicle->file_no.')', route('admin.payments.show', $payment), 'bi-cash-coin', 'payments.view');
         Notifier::client($vehicle->client, 'payment.new', 'تم تسجيل دفعة جديدة', 'تم استلام '.money($payment->amount).' لسيارة '.$vehicle->title().'. المتبقي: '.money($fin['remaining']), route('portal.payments'), 'bi-cash-coin');
 
         $msg = 'تم تسجيل الدفعة بنجاح. رقم الإيصال: '.$payment->receipt_no;

@@ -2,7 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
     @include('partials.head')
-    <link rel="stylesheet" href="{{ asset('assets/css/site.css') }}?v=1">
+    <link rel="stylesheet" href="{{ asset('assets/css/site.css') }}?v=3">
+    <link rel="stylesheet" href="{{ asset('assets/css/portal.css') }}?v=3">
     <title>{{ setting('office_name') }} — {{ setting('office_tagline') }}</title>
     <meta name="description" content="{{ setting('hero_subtitle') }}">
     <meta property="og:title" content="{{ setting('office_name') }}">
@@ -10,23 +11,7 @@
 </head>
 <body class="site">
 @php($wa = preg_replace('/\D/', '', (string) setting('whatsapp')))
-<nav class="s-nav navbar navbar-expand-lg" id="siteNav">
-    <div class="container">
-        <a class="brand" href="#top">@include('partials.logo')<div><strong>{{ setting('office_name') }}</strong><small>Import &amp; Export</small></div></a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-label="القائمة"><i class="bi bi-list fs-3 text-white"></i></button>
-        <div class="collapse navbar-collapse" id="navMenu">
-            <ul class="navbar-nav mx-auto">
-                <li class="nav-item"><a class="nav-link" href="#top">الرئيسية</a></li>
-                <li class="nav-item"><a class="nav-link" href="#about">من نحن</a></li>
-                <li class="nav-item"><a class="nav-link" href="#services">خدماتنا</a></li>
-                <li class="nav-item"><a class="nav-link" href="#steps">خطوات الاستيراد</a></li>
-                <li class="nav-item"><a class="nav-link" href="#why">لماذا العميد</a></li>
-                <li class="nav-item"><a class="nav-link" href="#contact">تواصل معنا</a></li>
-            </ul>
-            <a href="{{ route('login') }}" class="btn btn-gold px-4"><i class="bi bi-person-circle"></i> دخول العملاء</a>
-        </div>
-    </div>
-</nav>
+@include('site._nav')
 
 <header class="hero" id="top">
     <div class="container position-relative">
@@ -36,7 +21,7 @@
                 <h1>{!! preg_replace('/(أمريكا|عُمان)/u', '<span>$1</span>', e(setting('hero_title'))) !!}</h1>
                 <p class="lead">{{ setting('hero_subtitle') }}</p>
                 <div class="d-flex flex-wrap gap-2 mt-4">
-                    <a href="#contact" class="btn btn-gold btn-lg px-4">اطلب سيارتك الآن</a>
+                    <a href="{{ route('showroom.index') }}" class="btn btn-gold btn-lg px-4">تصفح السيارات المتاحة</a>
                     <a href="{{ route('login') }}" class="btn btn-outline-light btn-lg px-4"><i class="bi bi-car-front"></i> تابع سيارتك</a>
                 </div>
                 <div class="hero-stats">
@@ -64,6 +49,20 @@
         </div>
     </div>
 </header>
+
+@if ($showroom->count())
+<section class="section home-cars" id="cars">
+    <div class="container">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+            <div><h2 class="text-navy mb-2" style="font-size:clamp(1.6rem,3vw,2.3rem)">سيارات متاحة الآن</h2><p class="text-muted mb-0">سيارات مستوردة من أمريكا جاهزة للبيع — اختر سيارتك وتواصل معنا مباشرة.</p></div>
+            <a href="{{ route('showroom.index') }}" class="btn btn-outline-primary">عرض كل السيارات ({{ $showroomTotal }}) <i class="bi bi-arrow-left"></i></a>
+        </div>
+        <div class="row g-4">
+            @foreach ($showroom as $v)<div class="col-md-6 col-xl-4">@include('site.showroom._card', ['v' => $v])</div>@endforeach
+        </div>
+    </div>
+</section>
+@endif
 
 <section class="section" id="about">
     <div class="container">
@@ -164,37 +163,8 @@
     </div>
 </section>
 
-<footer class="s-footer">
-    <div class="container">
-        <div class="row g-4">
-            <div class="col-lg-5">
-                <div class="d-flex align-items-center gap-2 mb-3">@include('partials.logo')<b class="text-white font-head">{{ setting('office_name') }}</b></div>
-                <p style="line-height:1.9">{{ setting('footer_text') }}</p>
-                <div class="social">
-                    @foreach (['facebook' => 'facebook', 'instagram' => 'instagram', 'x' => 'twitter-x', 'tiktok' => 'tiktok', 'snapchat' => 'snapchat', 'youtube' => 'youtube'] as $k => $icon)
-                        @if (setting($k))<a href="{{ setting($k) }}" target="_blank" rel="noopener" aria-label="{{ $k }}"><i class="bi bi-{{ $icon }}"></i></a>@endif
-                    @endforeach
-                    @if ($wa)<a href="https://wa.me/{{ $wa }}" target="_blank" rel="noopener" aria-label="whatsapp"><i class="bi bi-whatsapp"></i></a>@endif
-                </div>
-            </div>
-            <div class="col-6 col-lg-3">
-                <h4>روابط سريعة</h4>
-                <ul class="list-unstyled d-grid gap-2"><li><a href="#about">من نحن</a></li><li><a href="#services">خدماتنا</a></li><li><a href="#steps">خطوات الاستيراد</a></li><li><a href="{{ route('login') }}">دخول العملاء</a></li></ul>
-            </div>
-            <div class="col-6 col-lg-4">
-                <h4>تواصل معنا</h4>
-                <ul class="list-unstyled d-grid gap-2">
-                    @if (setting('phone'))<li><i class="bi bi-telephone text-gold"></i> <span class="ltr" dir="ltr">{{ setting('phone') }}</span></li>@endif
-                    @if (setting('email'))<li><i class="bi bi-envelope text-gold"></i> {{ setting('email') }}</li>@endif
-                    @if (setting('address'))<li><i class="bi bi-geo-alt text-gold"></i> {{ setting('address') }}</li>@endif
-                </ul>
-            </div>
-        </div>
-        <hr class="border-secondary my-4">
-        <div class="text-center small">© {{ date('Y') }} {{ setting('office_name') }}. جميع الحقوق محفوظة.</div>
-    </div>
-</footer>
-@if ($wa)<a href="https://wa.me/{{ $wa }}" class="wa-float" target="_blank" rel="noopener" aria-label="واتساب"><i class="bi bi-whatsapp"></i></a>@endif
+@include('site._footer')
+
 <script src="{{ asset('assets/vendor/bootstrap/bootstrap.bundle.min.js') }}"></script>
 <script>
     const nav = document.getElementById('siteNav');

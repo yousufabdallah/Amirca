@@ -101,7 +101,7 @@ class ReportController extends Controller
         $rows = [];
         foreach ($vehicles as $v) {
             $fin = $v->financials();
-            $row = [$v->file_no, $v->client->full_name, $v->title(), $v->vin ?: '—', $v->status?->name ?? '—', fmt_date($v->purchase_date), fmt_date($v->eta), fmt_date($v->arrived_at)];
+            $row = [$v->file_no, $v->ownerName(), $v->title(), $v->vin ?: '—', $v->status?->name ?? '—', fmt_date($v->purchase_date), fmt_date($v->eta), fmt_date($v->arrived_at)];
             if ($withMoney) {
                 array_push($row, $fin['due'], $fin['paid'], $fin['remaining']);
             }
@@ -238,7 +238,7 @@ class ReportController extends Controller
                 $rows = [];
                 foreach ($vehicles as $v) {
                     $fin = $v->financials();
-                    $rows[] = [$v->file_no, $v->client->full_name, $v->client->phone, $v->title(), $v->status?->name ?? '—', $fin['due'], $fin['paid'], $fin['remaining'], \App\Support\Money::statusLabel($fin['status'])];
+                    $rows[] = [$v->file_no, $v->ownerName(), ($v->client?->phone ?? "—"), $v->title(), $v->status?->name ?? '—', $fin['due'], $fin['paid'], $fin['remaining'], \App\Support\Money::statusLabel($fin['status'])];
                 }
 
                 return [
@@ -266,7 +266,7 @@ class ReportController extends Controller
                     $items = Money::add(0, ...$v->costItems->pluck('amount')->all(), ...$v->expenses->pluck('amount')->all());
                     $total = Money::add($v->purchase_price, $v->auction_fees, $v->inland_transport, $items);
                     $tc += Money::toInt($total); $td += Money::toInt($v->total_due);
-                    $rows[] = [$v->file_no, $v->client->full_name, $v->title(), Money::fromInt(Money::toInt($v->purchase_price)), Money::fromInt(Money::toInt($v->auction_fees)), Money::fromInt(Money::toInt($v->inland_transport)), $items, $total, Money::fromInt(Money::toInt($v->total_due)), Money::sub($v->total_due, $total)];
+                    $rows[] = [$v->file_no, $v->ownerName(), $v->title(), Money::fromInt(Money::toInt($v->purchase_price)), Money::fromInt(Money::toInt($v->auction_fees)), Money::fromInt(Money::toInt($v->inland_transport)), $items, $total, Money::fromInt(Money::toInt($v->total_due)), Money::sub($v->total_due, $total)];
                 }
 
                 return [

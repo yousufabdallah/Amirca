@@ -39,6 +39,7 @@ return array(
     'App\\Http\\Controllers\\Portal\\ProfileController' => $baseDir . '/app/Http/Controllers/Portal/ProfileController.php',
     'App\\Http\\Controllers\\Portal\\UpdatesController' => $baseDir . '/app/Http/Controllers/Portal/UpdatesController.php',
     'App\\Http\\Controllers\\Portal\\VehicleController' => $baseDir . '/app/Http/Controllers/Portal/VehicleController.php',
+    'App\\Http\\Controllers\\ShowroomController' => $baseDir . '/app/Http/Controllers/ShowroomController.php',
     'App\\Http\\Controllers\\SiteController' => $baseDir . '/app/Http/Controllers/SiteController.php',
     'App\\Http\\Middleware\\EnsureBackoffice' => $baseDir . '/app/Http/Middleware/EnsureBackoffice.php',
     'App\\Http\\Middleware\\EnsureClient' => $baseDir . '/app/Http/Middleware/EnsureClient.php',

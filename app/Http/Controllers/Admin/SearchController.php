@@ -33,7 +33,7 @@ class SearchController extends Controller
                 ->orWhere('container_no', 'like', $like)->orWhereRaw("CONCAT(make,' ',model) LIKE ?", [$like])
                 ->orWhereHas('client', fn ($c) => $c->where('full_name', 'like', $like)->orWhere('phone', 'like', $like)))
                 ->limit(8)->get() as $v) {
-                $results[] = ['type' => 'سيارة', 'icon' => 'bi-car-front', 'title' => $v->title(), 'sub' => $v->file_no.' · '.($v->vin ?: '—').' · '.$v->client->full_name, 'url' => route('admin.vehicles.show', $v)];
+                $results[] = ['type' => 'سيارة', 'icon' => 'bi-car-front', 'title' => $v->title(), 'sub' => $v->file_no.' · '.($v->vin ?: '—').' · '.$v->ownerName(), 'url' => route('admin.vehicles.show', $v)];
             }
         }
 
