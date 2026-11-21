@@ -50,7 +50,9 @@
                                 @can('media.manage')<li><a class="dropdown-item" href="{{ route('admin.vehicles.show', $v) }}#images"><i class="bi bi-images"></i> رفع الصور</a></li>@endcan
                                 <li><a class="dropdown-item" target="_blank" href="{{ route('admin.vehicles.print', $v) }}"><i class="bi bi-printer"></i> طباعة بطاقة السيارة</a></li>
                                 @can('vehicles.manage')<li><hr class="dropdown-divider"></li><li>
+                                    @if (! $v->client_id && ! $v->archived_at)<form method="post" action="{{ route('admin.vehicles.sold', $v) }}">@csrf<button class="dropdown-item {{ $v->sold_at ? '' : 'text-danger' }}"><i class="bi bi-tag"></i> {{ $v->sold_at ? 'إلغاء علامة «تم البيع»' : 'تعليم «تم البيع»' }}</button></form>@endif
                                     @if ($v->archived_at)<form method="post" action="{{ route('admin.vehicles.restore', $v) }}">@csrf<button class="dropdown-item"><i class="bi bi-arrow-counterclockwise"></i> استعادة من الأرشيف</button></form>
+                                    <form method="post" action="{{ route('admin.vehicles.destroy', $v) }}" data-confirm="حذف السيارة {{ $v->file_no }} نهائيًا مع صورها ومستنداتها؟ لا يمكن التراجع.">@csrf @method('DELETE')<button class="dropdown-item text-danger"><i class="bi bi-trash"></i> حذف نهائي</button></form>
                                     @else<form method="post" action="{{ route('admin.vehicles.archive', $v) }}" data-confirm="نقل السيارة إلى الأرشيف؟">@csrf<button class="dropdown-item text-danger"><i class="bi bi-archive"></i> أرشفة السيارة</button></form>@endif
                                 </li>@endcan
                             </ul></div>

@@ -34,6 +34,7 @@ class Vehicle extends Model
             'total_due' => 'decimal:3',
             'sale_price' => 'decimal:3',
             'is_listed' => 'boolean',
+            'sold_at' => 'datetime',
         ];
     }
 
@@ -65,6 +66,8 @@ class Vehicle extends Model
     {
         return $q->whereNull('client_id')->where('is_listed', true)->whereNull('archived_at');
     }
+
+    public function isSold(): bool { return $this->sold_at !== null; }
 
     public function isOfficeStock(): bool { return $this->client_id === null; }
 

@@ -3,7 +3,7 @@
         'name' => 'alameed/import-system',
         'pretty_version' => 'dev-claude/vehicle-import-management-system-787cgw',
         'version' => 'dev-claude/vehicle-import-management-system-787cgw',
-        'reference' => '79e0c7592a956e2de6fd0af42606d1207f4f9dc9',
+        'reference' => '2c93f2a74281d62d1bc221d8c0e59267d4bba12d',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         'alameed/import-system' => array(
             'pretty_version' => 'dev-claude/vehicle-import-management-system-787cgw',
             'version' => 'dev-claude/vehicle-import-management-system-787cgw',
-            'reference' => '79e0c7592a956e2de6fd0af42606d1207f4f9dc9',
+            'reference' => '2c93f2a74281d62d1bc221d8c0e59267d4bba12d',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

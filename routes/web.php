@@ -105,6 +105,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'backoffice'])->grou
             Route::get('/vehicles/{vehicle}/edit', [Admin\VehicleController::class, 'edit'])->name('vehicles.edit');
             Route::put('/vehicles/{vehicle}', [Admin\VehicleController::class, 'update'])->name('vehicles.update');
             Route::post('/vehicles/{vehicle}/archive', [Admin\VehicleController::class, 'archive'])->name('vehicles.archive');
+            Route::post('/vehicles/{vehicle}/sold', [Admin\VehicleController::class, 'toggleSold'])->name('vehicles.sold');
+            Route::delete('/vehicles/{vehicle}', [Admin\VehicleController::class, 'destroy'])->name('vehicles.destroy');
             Route::post('/vehicles/{vehicle}/restore', [Admin\VehicleController::class, 'restore'])->name('vehicles.restore');
             Route::post('/vehicles/{vehicle}/notes', [Admin\NoteController::class, 'vehicle'])->name('vehicles.notes');
         });

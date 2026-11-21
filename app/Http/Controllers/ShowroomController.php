@@ -24,6 +24,7 @@ class ShowroomController extends Controller
             ->when($q !== '', fn ($w) => $w->where(fn ($x) => $x->whereRaw("CONCAT(make,' ',model) LIKE ?", [$like])->orWhere('trim', 'like', $like)->orWhere('file_no', 'like', $like)))
             ->when(! empty($f['make']), fn ($w) => $w->where('make', $f['make']))
             ->when(! empty($f['year']), fn ($w) => $w->where('year', $f['year']))
+            ->orderByRaw('sold_at IS NOT NULL')
             ->when(($f['sort'] ?? 'new') === 'price_asc', fn ($w) => $w->orderByRaw('sale_price IS NULL')->orderBy('sale_price'))
             ->when(($f['sort'] ?? '') === 'price_desc', fn ($w) => $w->orderByDesc('sale_price'))
             ->when(($f['sort'] ?? '') === 'year', fn ($w) => $w->orderByDesc('year'))

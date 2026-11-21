@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     @include('partials.head')
-    <link rel="stylesheet" href="{{ asset('assets/css/site.css') }}?v=3">
+    <link rel="stylesheet" href="{{ asset('assets/css/site.css') }}?v=4">
     <link rel="stylesheet" href="{{ asset('assets/css/portal.css') }}?v=3">
     <title>{{ setting('office_name') }} — {{ setting('office_tagline') }}</title>
     <meta name="description" content="{{ setting('hero_subtitle') }}">

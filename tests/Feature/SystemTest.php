@@ -295,4 +295,37 @@ class SystemTest extends TestCase
         $this->get("/cars/{$v->file_no}")->assertNotFound();
         $this->get('/')->assertOk()->assertDontSee($v->file_no);
     }
+
+    public function test_mark_sold_and_delete_archived(): void
+    {
+        Storage::fake('local');
+        $this->actingAs($this->admin());
+        $this->post('/admin/vehicles', ['make' => 'Nissan', 'model' => 'Patrol', 'year' => 2022, 'is_listed' => 1,
+            'images' => [UploadedFile::fake()->image('a.jpg')]])->assertSessionHasNoErrors();
+        $v = Vehicle::latest('id')->first();
+        $this->post("/admin/vehicles/{$v->id}/sold")->assertRedirect();
+        $this->assertNotNull($v->fresh()->sold_at);
+        $this->get("/admin/vehicles/{$v->id}")->assertOk();
+        $this->post('/admin/logout');
+        $this->get('/cars')->assertOk()->assertSee('تم البيع');
+        $this->get("/cars/{$v->file_no}")->assertOk()->assertSee('تم البيع');
+
+        $this->actingAs($this->admin());
+        // لا يُحذف قبل الأرشفة
+        $this->delete("/admin/vehicles/{$v->id}")->assertSessionHas('error');
+        $this->post("/admin/vehicles/{$v->id}/archive");
+        $this->get('/admin/vehicles?tab=archived')->assertOk();
+        $path = $v->images()->first()->path;
+        $this->delete("/admin/vehicles/{$v->id}")->assertRedirect()->assertSessionHas('success');
+        $this->assertModelMissing($v);
+        Storage::disk('local')->assertMissing($path);
+
+        // سيارة عليها دفعات لا تُحذف
+        $c = $this->makeClient();
+        $v2 = $this->makeVehicle($c);
+        $this->post('/admin/payments', ['client_id' => $c->id, 'vehicle_id' => $v2->id, 'amount' => '10', 'paid_at' => now()->toDateString(), 'method' => 'cash']);
+        $this->post("/admin/vehicles/{$v2->id}/archive");
+        $this->delete("/admin/vehicles/{$v2->id}")->assertSessionHas('error');
+        $this->assertModelExists($v2);
+    }
 }

@@ -51,13 +51,14 @@
                 <h1>{{ $title }}</h1>
                 <div class="text-white-50 mb-3">{{ $vehicle->trim }}{{ $vehicle->trim && $vehicle->color ? ' · ' : '' }}{{ $vehicle->color }}</div>
                 <div class="small text-white-50">السعر</div>
-                <div class="bb-price">{{ $price ?? 'تواصل لمعرفة السعر' }}</div>
+                @if ($vehicle->sold_at)<div class="bb-sold">تم البيع</div><div class="small text-white-50 mt-1">هذه السيارة بيعت. تواصل معنا لطلب سيارة مشابهة.</div>
+                @else<div class="bb-price">{{ $price ?? 'تواصل لمعرفة السعر' }}</div>@endif
                 @if ($vehicle->status)
                     <div class="bb-row"><i class="bi {{ $vehicle->status->icon }}"></i> {{ in_array($vehicle->status->stage_group, ['arrived', 'delivered']) ? 'السيارة متوفرة في عُمان' : $vehicle->status->name }}
                         @if (! in_array($vehicle->status->stage_group, ['arrived', 'delivered']) && $vehicle->eta && $vehicle->eta->isFuture()) — الوصول المتوقع {{ fmt_date($vehicle->eta) }}@endif</div>
                 @endif
                 <div class="d-grid gap-2 mt-3">
-                    @if ($wa)<a href="https://wa.me/{{ $wa }}?text={{ urlencode('مرحبًا، أنا مهتم بالسيارة '.$title.' ('.$vehicle->file_no.")\n".$url) }}" target="_blank" rel="noopener" class="btn btn-success btn-lg"><i class="bi bi-whatsapp"></i> أنا مهتم — تواصل عبر واتساب</a>@endif
+                    @if ($wa)<a href="https://wa.me/{{ $wa }}?text={{ urlencode('مرحبًا، أنا مهتم بالسيارة '.$title.' ('.$vehicle->file_no.")\n".$url) }}" target="_blank" rel="noopener" class="btn btn-success btn-lg"><i class="bi bi-whatsapp"></i> {{ $vehicle->sold_at ? 'أريد سيارة مشابهة — واتساب' : 'أنا مهتم — تواصل عبر واتساب' }}</a>@endif
                     @if (setting('phone'))<a href="tel:{{ preg_replace('/[^\d+]/', '', setting('phone')) }}" class="btn btn-light"><i class="bi bi-telephone"></i> اتصل بنا <span dir="ltr">{{ setting('phone') }}</span></a>@endif
                 </div>
             </div>

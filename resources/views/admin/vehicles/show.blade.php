@@ -16,7 +16,9 @@
         @if ($canFin && $vehicle->client)<a href="{{ route('admin.vehicles.statement', $vehicle) }}" target="_blank" class="btn btn-outline-primary"><i class="bi bi-file-text"></i> كشف حساب</a>@endif
         <a href="{{ route('admin.vehicles.print', $vehicle) }}" target="_blank" class="btn btn-light"><i class="bi bi-printer"></i> بطاقة السيارة</a>
         @can('vehicles.manage')
+            @if (! $vehicle->client_id && ! $vehicle->archived_at)<form method="post" action="{{ route('admin.vehicles.sold', $vehicle) }}">@csrf<button class="btn {{ $vehicle->sold_at ? 'btn-outline-secondary' : 'btn-danger' }}"><i class="bi bi-tag"></i> {{ $vehicle->sold_at ? 'إلغاء «تم البيع»' : 'تم البيع' }}</button></form>@endif
             @if ($vehicle->archived_at)<form method="post" action="{{ route('admin.vehicles.restore', $vehicle) }}">@csrf<button class="btn btn-light"><i class="bi bi-arrow-counterclockwise"></i> استعادة</button></form>
+            <form method="post" action="{{ route('admin.vehicles.destroy', $vehicle) }}" data-confirm="حذف السيارة نهائيًا مع صورها ومستنداتها؟ لا يمكن التراجع.">@csrf @method('DELETE')<button class="btn btn-danger"><i class="bi bi-trash"></i> حذف نهائي</button></form>
             @else<form method="post" action="{{ route('admin.vehicles.archive', $vehicle) }}" data-confirm="نقل السيارة إلى الأرشيف؟ ستبقى جميع بياناتها ودفعاتها محفوظة.">@csrf<button class="btn btn-light text-danger"><i class="bi bi-archive"></i> أرشفة</button></form>@endif
         @endcan
     </div>

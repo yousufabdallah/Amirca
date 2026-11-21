@@ -102,3 +102,10 @@ body.inner { background: #f3f5f9; }
 .bb-row .bi { color: var(--gold); }
 @media (max-width: 991.98px) { .buy-box { position: static; } }
 .home-cars { background: #f3f5f9; }
+
+/* سيارات تم بيعها */
+.sold-ribbon { position: absolute; top: 14px; left: -36px; transform: rotate(-35deg); background: #dc2626; color: #fff; font-weight: 800; font-family: 'Cairo'; padding: .3rem 3rem; box-shadow: 0 4px 12px rgba(220, 38, 38, .4); z-index: 2; }
+.car-card.is-sold .cover img { filter: grayscale(.45); }
+.bb-sold { display: inline-block; background: #dc2626; color: #fff; font-family: 'Cairo'; font-weight: 800; font-size: 1.6rem; padding: .2rem 1.2rem; border-radius: 12px; }
+.s-nav .nav-link { white-space: nowrap; }
+@media (min-width: 992px) and (max-width: 1399.98px) { .s-nav .nav-link { padding: .5rem .55rem !important; font-size: .9rem; } .s-nav .brand strong { font-size: .95rem; } .s-nav .btn-gold { white-space: nowrap; padding-inline: 1rem !important; } }

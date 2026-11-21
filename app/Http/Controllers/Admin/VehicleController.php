@@ -190,6 +190,41 @@ class VehicleController extends Controller
         return back()->with('success', 'تمت استعادة السيارة من الأرشيف.');
     }
 
+    /** تعليم سيارة المكتب كمباعة (تبقى في المعرض بعلامة «تم البيع») أو إلغاء ذلك */
+    public function toggleSold(Vehicle $vehicle)
+    {
+        $vehicle->forceFill(['sold_at' => $vehicle->sold_at ? null : now(), 'updated_by' => auth()->id()])->save();
+        AuditLog::record('vehicle.sold', ($vehicle->sold_at ? 'تعليم السيارة كمباعة: ' : 'إلغاء علامة البيع: ').$vehicle->file_no, $vehicle);
+
+        return back()->with('success', $vehicle->sold_at ? 'تم تعليم السيارة «تم البيع» وستظهر بهذه العلامة في المعرض.' : 'تم إلغاء علامة البيع.');
+    }
+
+    /** حذف نهائي — للسيارات المؤرشفة فقط وبدون دفعات مالية (الدفعات لا تُحذف) */
+    public function destroy(Vehicle $vehicle)
+    {
+        if (! $vehicle->archived_at) {
+            return back()->with('error', 'لا يمكن حذف سيارة غير مؤرشفة. قم بأرشفتها أولًا.');
+        }
+        if ($vehicle->payments()->exists()) {
+            return back()->with('error', 'لا يمكن حذف سيارة عليها دفعات مالية مسجلة؛ تبقى في الأرشيف للحفاظ على السجلات المالية.');
+        }
+        $label = $vehicle->file_no.' ('.$vehicle->title().')';
+        DB::transaction(function () use ($vehicle) {
+            foreach ($vehicle->images as $img) {
+                FileStore::delete($img->path);
+            }
+            foreach ($vehicle->documents as $doc) {
+                FileStore::delete($doc->path);
+            }
+            $vehicle->expenses()->update(['vehicle_id' => null]);
+            $vehicle->internalNotes()->delete();
+            $vehicle->delete();
+        });
+        AuditLog::record('vehicle.delete', 'حذف نهائي للسيارة المؤرشفة '.$label);
+
+        return redirect()->route('admin.vehicles.index', ['tab' => 'archived'])->with('success', 'تم حذف السيارة '.$label.' نهائيًا.');
+    }
+
     public function printCard(Vehicle $vehicle)
     {
         $vehicle->load(['client', 'status', 'primaryImage']);
